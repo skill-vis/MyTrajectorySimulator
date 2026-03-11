@@ -1,54 +1,78 @@
-<header>
+# From Rapsodo data to init data for Nathan trajectory simulator (EXCEL)
 
-<!--
-  <<< Author notes: Course header >>>
-  Include a 1280×640 image, course title in sentence case, and a concise description in emphasis.
-  In your repository settings: enable template repository, add your 1280×640 social image, auto delete head branches.
-  Add your open source license, GitHub uses MIT license.
--->
+NathanはEXCELで投球や打球の軌道シミュレータを作り，下記に公開しています．
 
-# GitHub Pages
+## Nathanの軌道シミュレータの概要
+野球の物理の研究の第一人者のNathanは，the physics of baseballというページを作り，そこに様々な情報を公開しています．
 
-_Create a site or blog from your GitHub repositories with GitHub Pages._
+このページのうち，[Trajectory Calculator](https://baseball.physics.illinois.edu/trajectory-calculator-new3D.html)
+に置いてある，EXCELで書かれたファイルBaseball Trajectory [Calculator--new 3D version: updated, November 13, 2021](https://baseball.physics.illinois.edu/TrajectoryCalculator-new-3D-May2021.xlsx) を使用すると，環境変数（気温や高度など）とボールの運動学的な初期値（初速度の大きさ，方向，角速度）を入力すると，ピッチングマウンドからホームベースまでの軌道を計算できます．もともとはバッティングの軌道計算だけでしたが，新しく投球軌道シミュレータのEXCELのタブを追加しています．
 
-</header>
+内容を確認しましたが，計算方法は非常に丁寧です．Alan Nathanは物理学者なので，非常に丁寧な仕事をされています．ただしEXCELなので積分方法は単純です．私はPythonコードでルンゲ・クッタ法に書き換えていますが，この程度の計算では大きな違いは発生しません．
 
-<!--
-  <<< Author notes: Step 1 >>>
-  Choose 3-5 steps for your course.
-  The first step is always the hardest, so pick something easy!
-  Link to docs.github.com for further explanations.
-  Encourage users to open new tabs for steps!
--->
+単位はアメリカのft, mphなど異なるので注意が必要ですが，EXCELの必要なところに，単位を変換して入力すれば，X, Y, Zの軌道を計算できます．
 
-## Step 1: Enable GitHub Pages
+ただし一番厄介なことは，ボールの角速度ベクトルの初期境界条件の入力です，多くの人はRapsodoなどの計測機器による指標に慣れていると思いますが，Nathanのシミュレータの初期値の定義はは少し異なり，RapsodoやStatcastから出力される結果をそのまま使えません．
 
-_Welcome to GitHub Pages and Jekyll :tada:!_
+Rapsodoなどは，角速度の大きさ（回転数：rpm）と，回転軸の水平角度（回転方向：しかも角度ではなく時刻表記）と方位角（ジャイロ角度）を与えています．
+これに対してNathanは，角度ではなく，**バックスピンの回転数**と，**サイドスピンの回転数**という数値を初期条件として使用しています．
 
-The first step is to enable GitHub Pages on this [repository](https://docs.github.com/en/get-started/quickstart/github-glossary#repository). When you enable GitHub Pages on a repository, GitHub takes the content that's on the main branch and publishes a website based on its contents.
+この変換は，単位だけの変換では計算できません．そこで，Pythonで計算できる変換コード（rapsodo_to_nathan.py）を作りました．これで，計算をするとターミナルに**バックスピンの回転数**と，**サイドスピンの回転数**を含めて出力されます．
 
-### :keyboard: Activity: Enable GitHub Pages
+Pythonコードに，Rapsodoなどで得られた，角速度データ（回転数データ）を入力し，コードを実行し絵tください．すると，ターミナルの出力に，EXCELで必要とされる，角速度（**BackSpin (rpn)+*と**SideSpin (rpm）**を計算し出力します．
 
-1. Open a new browser tab, and work on the steps in your second tab while you read the instructions in this tab.
-1. Under your repository name, click **Settings**.
-1. Click **Pages** in the **Code and automation** section.
-1. Ensure "Deploy from a branch" is selected from the **Source** drop-down menu, and then select `main` from the **Branch** drop-down menu.
-1. Click the **Save** button.
-1. Wait about _one minute_ then refresh this page (the one you're following instructions from). [GitHub Actions](https://docs.github.com/en/actions) will automatically update to the next step.
-   > Turning on GitHub Pages creates a deployment of your repository. GitHub Actions may take up to a minute to respond while waiting for the deployment. Future steps will be about 20 seconds; this step is slower.
-   > **Note**: In the **Pages** of **Settings**, the **Visit site** button will appear at the top. Click the button to see your GitHub Pages site.
+Nathanの計算方法の詳細は，[論文: Analysis of Baseball Trajectories](https://baseball.physics.illinois.edu/TrajectoryAnalysis.pdf)と，EXCELの最後のタブにあるReadMeなどを御覧ください．
 
-<footer>
+## シミュレータの座標系
+X：左右方向：３塁ー＞１塁：正
+Y：捕手ー＞投手方向：正
+Z：鉛直上方：正
 
-<!--
-  <<< Author notes: Footer >>>
-  Add a link to get support, GitHub status page, code of conduct, license link.
--->
+## 初期値変換コード（rapsodo_to_nathan.py）使用方法
 
----
+このコードは，コード内で
 
-Get help: [Post in our discussion board](https://github.com/orgs/skills/discussions/categories/github-pages) &bull; [Review the GitHub status page](https://www.githubstatus.com/)
+入力として，
 
-&copy; 2023 GitHub &bull; [Code of Conduct](https://www.contributor-covenant.org/version/2/1/code_of_conduct/code_of_conduct.md) &bull; [MIT License](https://gh.io/mit)
+        １．初期速度 (km/h)：　例，v0_mps=132.7,  # 最高速度（初期速度と同一と解釈，km/hで入力）
+        
+        ２．初速度の上下角度 (deg) ：　例，vel_angle_vertical_deg=-1.47, # deg　ボールの上下速度方向角度（下向きが正なので注意）
+        
+        ３．初速度の左右角度 (deg)：　例，vel_azimuth_deg=2.0, # deg　と急の方位角　（例：右ピッチャーがマウンドの右側から，ホームベースの内側の左方向に投げるときは正）
+        
+        ４．角速度のノルム　(回転数，rpm)：　例，spin_rate_rpm=2152.3, #　回転数
+        
+        ５．横のリリース角度（deg）：　例，spin_tilt_deg=-25.0, # deg　投手から見た回転軸の水平軸に対する角度（ユーザが角度に変換してほしい。ここでは0としています）
+            回転軸が水平面となす角 [deg]。0＝水平、90＝鉛直（後方から見た傾き）
+            通常，右投手のストレートの場合：水平面から下向きになるので，数値は通常は負の数値となる
 
-</footer>
+        ６．縦のリリース角度（deg）：例，spin_azimuth_deg=0.0, # deg
+        回転軸の方位（真上から見た）[deg]
+        spin_azimuth_deg 0＝捕手方向（-Y）と一致
+
+を与えて（書き換えて），Pythonで実行します．
+このファイルの中身を書き換えてください．最後のmain関数の部分です．
+実行例：
+        
+        cd ◯◯/◯◯/ # このPythonコードのあるフォルダー（ディレクトリ）に移動
+        
+        python3 rapsodo_to_nathan.py
+
+<img width="1362" height="464" alt="image" src="https://github.com/user-attachments/assets/003927c4-51b9-49b0-9369-00c09cf951d9" />
+
+角度の単位の定義などは，Pythonコードを御覧ください．
+
+## Rapsodoの表示例
+<img width="2045" height="1345" alt="スクリーンショット 2026-03-11 18 38 14" src="https://github.com/user-attachments/assets/68e2b387-2233-4343-bb19-227f1be38f3f" />
+
+図は，[ラプソード計測データ解説①「球速」](https://note-rapsodojp.rapsodo.com/n/n8ad1ed6f0109)　より引用しました．
+
+## NathanのPitchedBallTrajectoryの入力例
+EXCELの左側の赤色の枠線で囲ってある部分を，このシミュレーションではいじっています．
+
+さきほどの**rapsodo_to_nathan.py**は，このうち黄色い部部分の，初期値を計算します．release speed (mph)，は単位を変えただけ，release angle (deg)とrelease direction (deg)はそのまま入力すればよいのですが，これらの値を，backspin (rpm)やsidespin (rpm)の，角速度ベクトルの初期入力値の計算に使用します．
+
+
+<img width="1256" height="892" alt="image" src="https://github.com/user-attachments/assets/d3f1aff9-0de8-435f-a46b-8a5f72c73389" />
+
+不備があるかもしれませんが，その場合，ご容赦ください．不備のご指摘に関しては，skill-vs.comまのお問い合わせまで．
