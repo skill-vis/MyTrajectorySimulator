@@ -1,12 +1,12 @@
 # Initial data converter for the Nathan trajectory simulator (EXCEL)
-<img width="1417" height="1501" alt="nathan_vectors_illustrator_v2" src="https://github.com/user-attachments/assets/60c96334-87e1-4259-9618-d9db6b8bb057" />
 
+<img width="1417" height="1501" alt="nathan_vectors_illustrator_v2" src="https://github.com/user-attachments/assets/2302e1f5-9b23-4ca2-88a1-22a80e377a1d" />
 
 <img width="890" height="542" alt="image" src="https://github.com/user-attachments/assets/0a0f010a-2b4d-4c72-abec-aadf0a7f4566" />
 
 Alan NathanはEXCELで投球や打球の軌道シミュレータを作り，下記に公開しています．
 
-ここで公開している，初期値変換コード（rapsodo_to_nathan.py）は，そのシミュレータに入力する，角速度データの値の計算を補助するためのツールです．一般にはRapsodoなどで，出力される角速度（回転寿）データと，Nathanのシミュレータの角速度データとの整合性がないので，それを補助する目的で作りました．
+ここで公開している，初期値変換コード（rapsodo_to_nathan.py）は，そのシミュレータに入力する，角速度データの値の計算を補助するためのツールです．一般にはRapsodoで，出力される角速度（回転寿）データと，Nathanのシミュレータの角速度データとの整合性がないので，それを補助する目的で作りました．
 
 ただ，ひとつだけお許しいただきたいことがあります．Rapsodoが示す「回転方向の角度」（投手から見た回転軸の水平面になす角度）は，時刻表記と物理的な表記となじまない（不適切な）角度表記のため，この角度は，ご自身で適切な角度（deg）に手動で変換していただきくことをお願いしております．ご不便をおかけしますが何卒よろしくお願いいたします．
 
