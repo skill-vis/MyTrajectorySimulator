@@ -37,7 +37,9 @@ Nathanの計算方法の詳細は，[論文: Analysis of Baseball Trajectories](
 
 ## シミュレータの座標系
 X：左右方向：３塁ー＞１塁：正
+
 Y：捕手ー＞投手方向：正
+
 Z：鉛直上方：正
 
 ## 初期値変換コード（rapsodo_to_nathan.py）使用方法
