@@ -1,4 +1,5 @@
 # Initial data converter for the Nathan trajectory simulator (EXCEL)
+2026.03.18訂正（時計入力に対応し，左右投手の区別，リリース位置の変換な，不備に対応）
 
 <img width="1417" height="1501" alt="nathan_vectors_illustrator_v2" src="https://github.com/user-attachments/assets/2302e1f5-9b23-4ca2-88a1-22a80e377a1d" />
 
@@ -81,7 +82,8 @@ Z：鉛直上方：正
 角度の単位の定義などは，Pythonコードを御覧ください．
 
 ## Rapsodoの表示例
-<img width="2045" height="1345" alt="スクリーンショット 2026-03-11 18 38 14" src="https://github.com/user-attachments/assets/68e2b387-2233-4343-bb19-227f1be38f3f" />
+![Rapsodo_#2](https://github.com/user-attachments/assets/45dc543a-2473-4b64-9566-bd07931b3a91)
+
 
 図は，[ラプソード計測データ解説①「球速」](https://note-rapsodojp.rapsodo.com/n/n8ad1ed6f0109)　より引用しました．
 
@@ -92,7 +94,6 @@ EXCELの左側の赤色の枠線で囲ってある部分を，このシミュレ
 
 コードやこの説明に不備があるかもしれませんが，その場合，ご容赦ください．不備のご指摘に関しては，お手数ですが，[SkillVis](skill-vs.com)までに，お問い合わせください．
 
-### なお，不備のご指摘やご要望をいただいいた場合，内容は拝見しますが，返信を行わない予定ですので，あらかじめご承知ください．申し訳ありません．
-
+### なお，不備のご指摘やご要望をいただいいた場合，返信を行わないこともあるかもしれませんが，あらかじめご承知ください．申し訳ありません．
 
 <img width="1256" height="892" alt="image" src="https://github.com/user-attachments/assets/d3f1aff9-0de8-435f-a46b-8a5f72c73389" />
