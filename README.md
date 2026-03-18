@@ -48,6 +48,8 @@ Z：鉛直上方：正
 
 <img width="1327" height="1430" alt="nathan_vectors_illustrator_v2" src="https://github.com/user-attachments/assets/d5224878-7737-48fa-a970-14cc52797ce3" />
 
+角速度の座標系は，ボールの初速度方向（法線方向）とそれに直交する面で構成されています．
+
 ## Rapsodoの表示例
 ![Rapsodo_#2](https://github.com/user-attachments/assets/45dc543a-2473-4b64-9566-bd07931b3a91)
 
