@@ -103,8 +103,8 @@ Z：鉛直上方：正
         PitchParameters: PitchParameters(x0=0.47, y0=16.764, z0=1.5, v0_mps=37.611111111111114, theta_deg=0.1, phi_deg=2.6, backspin_rpm=1062.736282989416, sidespin_rpm=-1377.8913828343998, wg_rpm=450.712026436565, batter_hand='R')
         backspin_rpm=1062.7, sidespin_rpm=-1377.9, wg_rpm=450.7
         --- Nathan Excel 用 ---
-        辞書: {'release_speed_mph': 84.13365942893493, 'release_angle_deg': 0.1, 'release_direction_deg': 2.6, 'backspin_rpm': 1062.736282989416, 'sidespin_rpm': -1377.8913828343998, 'wg_rpm': 450.712026436565, 'x0_m': 0.47, 'y0_m': 16.764, 'z0_m': 1.5, 'x0_ft': 1.5419947999999999, 'y0_ft': 55.000001759999996, 'z0_ft': 4.92126}
-        貼り付け用1行: 84.1337	0.1000	2.6000	1062.74	-1377.89	450.71
+        辞書: {'release_speed_mph': 84.13365942893493, 'release_angle_deg': 0.1, 'release_direction_deg': 2.6, 'backspin_rpm': 1062.736282989416, 'sidespin_rpm': -1377.8913828343998, 'wg_rpm': 450.712026436565, 'x0_ft': 1.5419947999999999, 'y0_ft': 55.000001759999996, 'z0_ft': 4.92126, 'x0_m': 0.47, 'y0_m': 16.764, 'z0_m': 1.5}
+        貼り付け用1行: 84.1337  0.1000  2.6000  1062.74 -1377.89        450.71  1.5420  55.0000 4.9213
 
 ## NathanのPitchedBallTrajectoryの入力例
 EXCELの左側の赤色の枠線で囲ってある（黃色にハイライトした）部分を，このシミュレーションではいじっています．
