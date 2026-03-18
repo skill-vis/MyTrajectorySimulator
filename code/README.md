@@ -18,8 +18,3 @@ pip install -r requirements.txt
 python rapsodo_to_nathan.py
 ```
 
-## Git に載せる場合
-
-リポジトリルートで `code/` を追加し、上記3ファイル + `requirements.txt` + `README.md` をコミットしてください。
-
-親ディレクトリの `../rapsodo_to_nathan.py` は、この `code/rapsodo_to_nathan.py` を読み込む薄いラッパーです（後方互換）。
