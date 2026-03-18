@@ -1,5 +1,4 @@
 """
-MyBallTrajectorySim から rapsodo_to_nathan 用に必要な部分のみ抽出:
 PitchParameters と angular_velocity_xyz_to_backspin_sidespin_wg
 """
 
