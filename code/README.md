@@ -1,6 +1,4 @@
-# Rapsodo → Nathan Excel 変換（最小依存）
-
-`MyBallTrajectorySim.py` 全体に依存せず、**時計→角度**と **角速度→B,S,G** と **rapsodo_to_nathan** のみを同梱します。
+# Rapsodo → Nathan Excel 変換
 
 ## ファイル
 
