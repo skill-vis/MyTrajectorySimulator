@@ -1,4 +1,4 @@
-# Initial data converter for the Nathan trajectory simulator (EXCEL)
+# Initial condition converter for the Nathan trajectory simulator (Rapsodo to EXCEL)
 2026.03.18訂正（時計入力に対応し，左右投手の区別，リリース位置の変換な，不備に対応）
 
 <img width="1417" height="1501" alt="nathan_vectors_illustrator_v2" src="https://github.com/user-attachments/assets/2302e1f5-9b23-4ca2-88a1-22a80e377a1d" />
