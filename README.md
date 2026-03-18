@@ -79,8 +79,8 @@ Z：鉛直上方：正
         cd ◯◯/◯◯/ # このPythonコードのあるフォルダー（ディレクトリ）に移動
         
         python3 rapsodo_to_nathan.py
-        
-<img width="938" height="766" alt="image" src="https://github.com/user-attachments/assets/b0ca7cee-2b23-453d-9aaf-17f13b28f8c3" />
+
+<img width="1186" height="694" alt="image" src="https://github.com/user-attachments/assets/10e543a4-c62f-4d60-8de1-ad22987c9792" />
 
 角度の単位の定義などは，Pythonコードを御覧ください．
 
@@ -90,7 +90,9 @@ Z：鉛直上方：正
 
 図は，[ラプソード計測データ解説①「球速」](https://note-rapsodojp.rapsodo.com/n/n8ad1ed6f0109)　より引用しました．
 
-次の図はRapsodoが定義していると思われる定義を示した図です．XYZの座標系はNathanの定義を踏襲しただけです．Rapsodoには記述がありません．言葉だけの定義が多く，厳密な定義が多いため，推測を含んでおります．
+次の図はRapsodoが定義していると思われる定義を示した図です．XYZの座標系はNathanの定義を踏襲しただけです．Rapsodoには座標系の記述がありません．
+
+また，角度などには言葉だけの定義が多く，厳密な定義がないため，この変換コードは言葉からの推測により式を作成しております．
 
 <img width="1387" height="1515" alt="Rapsodo" src="https://github.com/user-attachments/assets/efc828be-2e68-49d9-8ef6-ab3364777ff8" />
 
@@ -104,5 +106,7 @@ Nathanの計算結果は，アメリカの単位系ftなどを使用していま
 コードやこの説明に不備があるかもしれませんが，その場合，ご容赦ください．不備のご指摘に関しては，お手数ですが，[SkillVis](skill-vs.com)までに，お問い合わせください．
 
 ### なお，不備のご指摘やご要望をいただいいた場合，返信を行わないこともあるかもしれませんが，あらかじめご承知ください．申し訳ありません．
+
+### プログラム等には不備を含む場合があります．本内容を参照して研究などを行う場合には，その点を十分に踏まえた上で，自己責任でご利用ください．また，掲載内容によって生じた一切の損害については，著者はその責を負わないものとします．
 
 <img width="1256" height="892" alt="image" src="https://github.com/user-attachments/assets/d3f1aff9-0de8-435f-a46b-8a5f72c73389" />
