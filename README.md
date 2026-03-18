@@ -1,23 +1,22 @@
 # Initial condition converter for the Nathan trajectory simulator (Rapsodo to EXCEL)
 2026.03.18訂正（時計入力に対応し，左右投手の区別，リリース位置の変換な，不備に対応）
 
-<img width="1417" height="1501" alt="nathan_vectors_illustrator_v2" src="https://github.com/user-attachments/assets/2302e1f5-9b23-4ca2-88a1-22a80e377a1d" />
-
-<img width="890" height="542" alt="image" src="https://github.com/user-attachments/assets/0a0f010a-2b4d-4c72-abec-aadf0a7f4566" />
-
 Alan NathanはEXCELで投球や打球の軌道シミュレータを作り，下記に公開しています．
 
 ここで公開している，初期値変換コード（rapsodo_to_nathan.py）は，そのシミュレータに入力する，角速度データの値の計算を補助するためのツールです．一般にはRapsodoで，出力される角速度（回転寿）データと，Nathanのシミュレータの角速度データとの整合性がないので，それを補助する目的で作りました．
 
-次の図はRapsodoが定義していると思われる定義を示した図です．XYZの座標系はNathanの定義を踏襲しただけです．Rapsodoには記述がありません．言葉だけの定義が多く，厳密な定義が多いため，推測を含んでおります．
+EXCELで作られたシミュレータで使用している単位系はアメリカ仕様でftなどを用いています．もしmなどに変換が必要な場合は，新たにセルを作って変換すると良いでしょう．
 
-<img width="1387" height="1515" alt="Rapsodo" src="https://github.com/user-attachments/assets/efc828be-2e68-49d9-8ef6-ab3364777ff8" />
+１ [ft] = 0.3048 [m] です．
 
 ## Nathanの軌道シミュレータの概要
+<img width="890" height="542" alt="image" src="https://github.com/user-attachments/assets/0a0f010a-2b4d-4c72-abec-aadf0a7f4566" />
+
+
 野球の物理の研究の第一人者のNathanは，the physics of baseballというページを作り，そこに様々な情報を公開しています．
 
 このページのうち，[Trajectory Calculator](https://baseball.physics.illinois.edu/trajectory-calculator-new3D.html)
-に置いてある，EXCELで書かれたファイルBaseball Trajectory [Calculator--new 3D version: updated, November 13, 2021](https://baseball.physics.illinois.edu/TrajectoryCalculator-new-3D-May2021.xlsx) を使用すると，環境変数（気温や高度など）とボールの運動学的な初期値（初速度の大きさ，方向，角速度）を入力すると，ピッチングマウンドからホームベースまでの軌道を計算できます．もともとはバッティングの軌道計算だけでしたが，新しく投球軌道シミュレータのEXCELのタブを追加しています．
+に置いてある，EXCELで書かれたファイルBaseball Trajectory [Calculator--new 3D version: updated, November 13, 2021](https://baseball.physics.illinois.edu/TrajectoryCalculator-new-3D-May2021.xlsx) を使用すると，環境変数（気温や高度など）とボールの運動学的な初期値（初速度の大きさ，方向，角速度）を入力すると，ピッチングマウンドからホームベースまでの軌道を計算できます．もともとはバッティングの軌道計算だけでしたが，新しく投球軌道シミュレータのEXCELのシート（PitchedBallTrajectory）を追加しています．
 
 Alan Nathanは物理学者なので，非常に丁寧な仕事をされており，このシミュレータの計算方法は非常に丁寧に記述されています．ただしEXCELなので積分方法は単純です．Pythonコードではルンゲ・クッタ法に書き換えていますが大きな違いは発生しません．
 
@@ -46,6 +45,8 @@ X：左右方向：３塁ー＞１塁：正
 Y：捕手ー＞投手方向：正
 
 Z：鉛直上方：正
+
+<img width="1417" height="1501" alt="nathan_vectors_illustrator_v2" src="https://github.com/user-attachments/assets/2302e1f5-9b23-4ca2-88a1-22a80e377a1d" />
 
 ## 初期値変換コード（rapsodo_to_nathan.py）使用方法
 
@@ -89,10 +90,16 @@ Z：鉛直上方：正
 
 図は，[ラプソード計測データ解説①「球速」](https://note-rapsodojp.rapsodo.com/n/n8ad1ed6f0109)　より引用しました．
 
+次の図はRapsodoが定義していると思われる定義を示した図です．XYZの座標系はNathanの定義を踏襲しただけです．Rapsodoには記述がありません．言葉だけの定義が多く，厳密な定義が多いため，推測を含んでおります．
+
+<img width="1387" height="1515" alt="Rapsodo" src="https://github.com/user-attachments/assets/efc828be-2e68-49d9-8ef6-ab3364777ff8" />
+
 ## NathanのPitchedBallTrajectoryの入力例
 EXCELの左側の赤色の枠線で囲ってある部分を，このシミュレーションではいじっています．
 
 さきほどの**rapsodo_to_nathan.py**は，このうち黄色い部部分の，初期値を計算します．release speed (mph)，は単位を変えただけ，release angle (deg)とrelease direction (deg)はそのまま入力すればよいのですが，これらの値を，backspin (rpm)やsidespin (rpm)の，角速度ベクトルの初期入力値の計算に使用します．
+
+Nathanの計算結果は，アメリカの単位系ftなどを使用しています．必要に応じて，ご自身でmなどに変換してください．
 
 コードやこの説明に不備があるかもしれませんが，その場合，ご容赦ください．不備のご指摘に関しては，お手数ですが，[SkillVis](skill-vs.com)までに，お問い合わせください．
 
