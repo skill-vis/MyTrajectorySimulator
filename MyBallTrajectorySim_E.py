@@ -354,8 +354,12 @@ class BallTrajectorySimulator2:
         ax = drag_x + magnus_x
         ay = drag_y + magnus_y
         az = drag_z + magnus_z - self.g
-        
-        return np.array([ax, ay, az])
+
+        return np.array([ax, ay, az]), {
+            'drag_x': drag_x, 'drag_y': drag_y, 'drag_z': drag_z,
+            'magnus_x': magnus_x, 'magnus_y': magnus_y, 'magnus_z': magnus_z,
+            'gravity_z': -self.g
+        }
     
     def rk4_step(self, state: np.ndarray, t: float, dt: float,
                  pitch: PitchParameters, env: EnvironmentParameters,
@@ -379,22 +383,22 @@ class BallTrajectorySimulator2:
             Next state
         """
         # k1
-        acc1 = self.calculate_acceleration(state, t, pitch, env, const, rho, romega_initial)
+        acc1, _ = self.calculate_acceleration(state, t, pitch, env, const, rho, romega_initial)
         k1 = np.concatenate([state[3:6], acc1, np.zeros(5)])  # [vx, vy, vz, ax, ay, az, 0, 0, 0, 0, 0]
-        
+
         # k2
         state2 = state + 0.5 * dt * k1
-        acc2 = self.calculate_acceleration(state2, t + 0.5*dt, pitch, env, const, rho, romega_initial)
+        acc2, _ = self.calculate_acceleration(state2, t + 0.5*dt, pitch, env, const, rho, romega_initial)
         k2 = np.concatenate([state2[3:6], acc2, np.zeros(5)])
-        
+
         # k3
         state3 = state + 0.5 * dt * k2
-        acc3 = self.calculate_acceleration(state3, t + 0.5*dt, pitch, env, const, rho, romega_initial)
+        acc3, _ = self.calculate_acceleration(state3, t + 0.5*dt, pitch, env, const, rho, romega_initial)
         k3 = np.concatenate([state3[3:6], acc3, np.zeros(5)])
-        
+
         # k4
         state4 = state + dt * k3
-        acc4 = self.calculate_acceleration(state4, t + dt, pitch, env, const, rho, romega_initial)
+        acc4, _ = self.calculate_acceleration(state4, t + dt, pitch, env, const, rho, romega_initial)
         k4 = np.concatenate([state4[3:6], acc4, np.zeros(5)])
         
         next_state = state + (dt / 6.0) * (k1 + 2*k2 + 2*k3 + k4)
@@ -405,11 +409,11 @@ class BallTrajectorySimulator2:
                    pitch: PitchParameters, env: EnvironmentParameters,
                    const: float, rho: float, romega_initial: float) -> np.ndarray:
         """One explicit Euler step."""
-        acc = self.calculate_acceleration(state, t, pitch, env, const, rho, romega_initial)
+        acc, _ = self.calculate_acceleration(state, t, pitch, env, const, rho, romega_initial)
         next_state = state.copy()
         next_state[0:3] = state[0:3] + state[3:6] * dt + 0.5 * acc * dt**2
         next_state[3:6] = state[3:6] + acc * dt
-        
+
         return next_state
 
     def nathan_step(self, state: np.ndarray, t: float, dt: float,
@@ -421,7 +425,7 @@ class BallTrajectorySimulator2:
           2) v_{n+1} = v_n + a_n * dt
           3) x_{n+1} = x_n + v_{n+1}*dt + 0.5*a_n*dt^2
         """
-        acc = self.calculate_acceleration(state, t, pitch, env, const, rho, romega_initial)
+        acc, _ = self.calculate_acceleration(state, t, pitch, env, const, rho, romega_initial)
 
         next_state = state.copy()
         next_state[3:6] = state[3:6] + acc * dt
@@ -502,7 +506,7 @@ class BallTrajectorySimulator2:
         cd = self.calculate_drag_coefficient(v_rel, spin_eff, t)
         cl = self.calculate_lift_coefficient(romega, v_rel, t)
 
-        acc0 = self.calculate_acceleration(state, t, pitch, env, const, rho, romega_initial)
+        acc0, forces0 = self.calculate_acceleration(state, t, pitch, env, const, rho, romega_initial)
 
         self.trajectory.append({
             't': t,
@@ -515,6 +519,7 @@ class BallTrajectorySimulator2:
             'ax': acc0[0],
             'ay': acc0[1],
             'az': acc0[2],
+            **forces0,
             'v': v,
             'v_mph': v / 0.44704,
             'distance': math.sqrt(x**2 + y**2),
@@ -537,7 +542,7 @@ class BallTrajectorySimulator2:
             wx, wy, wz = state[6], state[7], state[8]
             spin_total, omega_total = state[9], state[10]
             v = math.sqrt(vx**2 + vy**2 + vz**2)
-            acc = self.calculate_acceleration(state, t + self.dt, pitch, env, const, rho, romega_initial)
+            acc, forces = self.calculate_acceleration(state, t + self.dt, pitch, env, const, rho, romega_initial)
 
             if len(self.trajectory) > 0:
                 prev_y = self.trajectory[-1]['y']
@@ -565,10 +570,14 @@ class BallTrajectorySimulator2:
                     cd_home = self.calculate_drag_coefficient(v_rel_home, spin_eff_home, t_home)
                     cl_home = self.calculate_lift_coefficient(romega_home, v_rel_home, t_home)
                     
-                    prev_acc = self.trajectory[-1]
-                    ax_home = prev_acc.get('ax', 0) + fraction * (acc[0] - prev_acc.get('ax', 0))
-                    ay_home = prev_acc.get('ay', 0) + fraction * (acc[1] - prev_acc.get('ay', 0))
-                    az_home = prev_acc.get('az', 0) + fraction * (acc[2] - prev_acc.get('az', 0))
+                    prev_pt = self.trajectory[-1]
+                    ax_home = prev_pt.get('ax', 0) + fraction * (acc[0] - prev_pt.get('ax', 0))
+                    ay_home = prev_pt.get('ay', 0) + fraction * (acc[1] - prev_pt.get('ay', 0))
+                    az_home = prev_pt.get('az', 0) + fraction * (acc[2] - prev_pt.get('az', 0))
+                    # Interpolate force components
+                    forces_home = {}
+                    for fk in ['drag_x','drag_y','drag_z','magnus_x','magnus_y','magnus_z','gravity_z']:
+                        forces_home[fk] = prev_pt.get(fk, 0) + fraction * (forces.get(fk, 0) - prev_pt.get(fk, 0))
 
                     self.home_plate_crossing = {
                         't': t_home,
@@ -593,6 +602,7 @@ class BallTrajectorySimulator2:
                         'ax': ax_home,
                         'ay': ay_home,
                         'az': az_home,
+                        **forces_home,
                         'v': v_home,
                         'v_mph': v_home / 0.44704,
                         'distance': math.sqrt(x_home**2 + home_plate_y**2),
@@ -628,6 +638,7 @@ class BallTrajectorySimulator2:
                     'ax': acc[0],
                     'ay': acc[1],
                     'az': acc[2],
+                    **forces,
                     'v': v,
                     'v_mph': v / 1.467,
                     'distance': math.sqrt(x**2 + y**2),
