@@ -501,7 +501,9 @@ class BallTrajectorySimulator2:
         romega = (spin_eff * self.rpm_to_rad_per_sec) * self.radius_m
         cd = self.calculate_drag_coefficient(v_rel, spin_eff, t)
         cl = self.calculate_lift_coefficient(romega, v_rel, t)
-        
+
+        acc0 = self.calculate_acceleration(state, t, pitch, env, const, rho, romega_initial)
+
         self.trajectory.append({
             't': t,
             'x': x,
@@ -510,6 +512,9 @@ class BallTrajectorySimulator2:
             'vx': vx,
             'vy': vy,
             'vz': vz,
+            'ax': acc0[0],
+            'ay': acc0[1],
+            'az': acc0[2],
             'v': v,
             'v_mph': v / 0.44704,
             'distance': math.sqrt(x**2 + y**2),
@@ -517,7 +522,7 @@ class BallTrajectorySimulator2:
             'cd': cd,
             'cl': cl
         })
-        
+
         step = 0
         while t < max_time:
             if self.integration_method == IntegrationMethod.RK4:
@@ -529,8 +534,11 @@ class BallTrajectorySimulator2:
             
             x, y, z = state[0], state[1], state[2]
             vx, vy, vz = state[3], state[4], state[5]
+            wx, wy, wz = state[6], state[7], state[8]
+            spin_total, omega_total = state[9], state[10]
             v = math.sqrt(vx**2 + vy**2 + vz**2)
-            
+            acc = self.calculate_acceleration(state, t + self.dt, pitch, env, const, rho, romega_initial)
+
             if len(self.trajectory) > 0:
                 prev_y = self.trajectory[-1]['y']
                 if prev_y > home_plate_y and y <= home_plate_y and self.home_plate_crossing is None:
@@ -557,6 +565,11 @@ class BallTrajectorySimulator2:
                     cd_home = self.calculate_drag_coefficient(v_rel_home, spin_eff_home, t_home)
                     cl_home = self.calculate_lift_coefficient(romega_home, v_rel_home, t_home)
                     
+                    prev_acc = self.trajectory[-1]
+                    ax_home = prev_acc.get('ax', 0) + fraction * (acc[0] - prev_acc.get('ax', 0))
+                    ay_home = prev_acc.get('ay', 0) + fraction * (acc[1] - prev_acc.get('ay', 0))
+                    az_home = prev_acc.get('az', 0) + fraction * (acc[2] - prev_acc.get('az', 0))
+
                     self.home_plate_crossing = {
                         't': t_home,
                         'x': x_home,
@@ -568,7 +581,7 @@ class BallTrajectorySimulator2:
                         'v': v_home,
                         'v_mph': v_home / 0.44704
                     }
-                    
+
                     self.trajectory.append({
                         't': t_home,
                         'x': x_home,
@@ -577,6 +590,9 @@ class BallTrajectorySimulator2:
                         'vx': vx_home,
                         'vy': vy_home,
                         'vz': vz_home,
+                        'ax': ax_home,
+                        'ay': ay_home,
+                        'az': az_home,
                         'v': v_home,
                         'v_mph': v_home / 0.44704,
                         'distance': math.sqrt(x_home**2 + home_plate_y**2),
@@ -600,7 +616,7 @@ class BallTrajectorySimulator2:
                 romega = (spin_eff * self.rpm_to_rad_per_sec) * self.radius_m
                 cd = self.calculate_drag_coefficient(v_rel, spin_eff, t)
                 cl = self.calculate_lift_coefficient(romega, v_rel, t)
-                
+
                 self.trajectory.append({
                     't': t,
                     'x': x,
@@ -609,6 +625,9 @@ class BallTrajectorySimulator2:
                     'vx': vx,
                     'vy': vy,
                     'vz': vz,
+                    'ax': acc[0],
+                    'ay': acc[1],
+                    'az': acc[2],
                     'v': v,
                     'v_mph': v / 1.467,
                     'distance': math.sqrt(x**2 + y**2),
