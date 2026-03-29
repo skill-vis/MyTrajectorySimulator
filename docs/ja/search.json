@@ -219,49 +219,49 @@
   {
     "objectID": "index.html",
     "href": "index.html",
-    "title": "投球軌道シミュレータ",
+    "title": "Baseball Pitch Trajectory Simulator",
     "section": "",
     "text": "実際の物理法則に基づいて、投球の3D軌道をブラウザ上でシミュレーションする無料ツールです。 MLB投手を検索し、投球を選んで、ボールが飛んでいく様子を観察できます。\nシミュレータを開く    はじめに"
   },
   {
     "objectID": "index.html#できること",
     "href": "index.html#できること",
-    "title": "投球軌道シミュレータ",
+    "title": "Baseball Pitch Trajectory Simulator",
     "section": "できること",
     "text": "できること\n投手の名前を入力すると、MLB Statcastからその投手の実際の投球データ（フォーシーム、スライダー、カーブ、チェンジアップなど）を取得します。データは2016年から現在のシーズンまで利用可能です（デフォルト: 2025年）。投球を選んでSimulateを押すと、ピッチャーの手からホームプレートまでの軌道が3Dで表示されます。\nこの軌道は映像に基づくアニメーションではありません。物理シミュレーションです。リリース速度、回転数、回転軸から、イリノイ大学のAlan Nathan教授が開発した空気力学モデル — 野球の軌道研究における標準的なリファレンス — を用いて計算しています。"
   },
   {
     "objectID": "index.html#活用シーン",
     "href": "index.html#活用シーン",
-    "title": "投球軌道シミュレータ",
+    "title": "Baseball Pitch Trajectory Simulator",
     "section": "活用シーン",
     "text": "活用シーン\n\n\nピッチングコーチ向け\n投手のフォーシームとチェンジアップをOverlayして、トンネリングが効果的かどうかを確認。2つの軌道がどこで、いつ分岐するかを正確に見ることができます。\n\n\nアナリスト向け\n投手間のスピン分解（バックスピン、サイドスピン、ジャイロスピン）を比較。位置、速度、加速度、力の各成分を含む完全な軌道データをCSVでエクスポートして、さらなる分析が可能です。\n\n\n選手育成向け\nRapsodoの計測データを直接入力して軌道をシミュレーション。回転数や回転軸を変えた「もしも」のシナリオをテストできます。"
   },
   {
     "objectID": "index.html#主な機能",
     "href": "index.html#主な機能",
-    "title": "投球軌道シミュレータ",
+    "title": "Baseball Pitch Trajectory Simulator",
     "section": "主な機能",
     "text": "主な機能\n\n\n\n\n\n\n\n機能\n説明\n\n\n\n\nMLB Statcast連携\n投手を検索し、試合ごとの投球データを閲覧、個別の投球をシミュレート\n\n\n3つの入力モード\nStatcastデータ、手動スライダー、Rapsodo計測値\n\n\nOverlay比較\n複数の投球を重ね合わせて軌道を比較\n\n\nバッター視点\nバッターボックスからの一人称カメラ — 打者が見る景色を体験\n\n\nピッチトンネル\n打者が判断を迫られるトンネルポイント（23.8フィート）を可視化\n\n\nスピン軸表示\n実際の角速度で回転する縫い目テクスチャ付きボールとスピン軸矢印\n\n\nCSVインポート/エクスポート\n速度、加速度、力の内訳を含む完全な軌道データ\n\n\n動画録画\n3Dビューをmp4としてエクスポート"
   },
   {
     "objectID": "index.html#球種一覧",
     "href": "index.html#球種一覧",
-    "title": "投球軌道シミュレータ",
+    "title": "Baseball Pitch Trajectory Simulator",
     "section": "球種一覧",
     "text": "球種一覧\nシミュレータはMLB Statcastと同じ球種分類とカラーコードを使用しています：\nFF フォーシーム   SI シンカー   FC カッター   SL スライダー   CU カーブ   CH チェンジアップ   FS スプリッター   ST スイーパー"
   },
   {
     "objectID": "index.html#物理の仕組み",
     "href": "index.html#物理の仕組み",
-    "title": "投球軌道シミュレータ",
+    "title": "Baseball Pitch Trajectory Simulator",
     "section": "物理の仕組み",
     "text": "物理の仕組み\n\n\n\n\n\n\nノート詳しく知りたい方へ（オプション）\n\n\n\n\n\nシミュレータは、空気中を進む回転するボールの運動方程式を解いています：\n\n抗力（ドラッグ） — ボールを減速させる（速度に逆らう力）\nマグナス力 — スピン軸と速度の両方に垂直な方向にボールを押す\n重力 — ボールを下に引く\n\nスピンは3つの成分に分解されます：\n\nバックスピン — 「ライズ」を生む。バックスピン2200rpmのフォーシームは、スピンなしのボールに比べて約40cm落下が少なくなります。\nサイドスピン — 水平方向の変化を生む。スライダーの横変化はサイドスピンによるものです。\nジャイロスピン — 進行方向周りの回転（弾丸のような回転）。変化には寄与しません。ジャイロスピンが多く、バック/サイドスピンが少ない投球は、総回転数が高くても変化が小さくなります。\n\nシミュレーションは4次ルンゲ・クッタ法で0.001秒刻みの積分を行い、Nathanのオリジナル軌道計算機と同等の精度を実現しています。"
   },
   {
     "objectID": "index.html#クレジット",
     "href": "index.html#クレジット",
-    "title": "投球軌道シミュレータ",
+    "title": "Baseball Pitch Trajectory Simulator",
     "section": "クレジット",
     "text": "クレジット\n\n物理モデル: Alan Nathanの軌道計算機\n投球データ: MLB Statcast（Hawk-Eyeトラッキング）\n野球ボールの縫い目曲線: mathcurve.com のパラメトリック表現"
   },

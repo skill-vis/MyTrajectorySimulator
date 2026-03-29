@@ -3,7 +3,7 @@ project:
   output-dir: ../docs/ja
 
 website:
-  title: "投球軌道シミュレータ"
+  title: "Baseball Pitch Trajectory Simulator"
   description: "スピンがどのように変化を生むかを可視化 — MLBのStatcastデータで"
   site-url: https://skill-vis.github.io/MyTrajectorySimulator/ja
   navbar:

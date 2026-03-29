@@ -1,5 +1,5 @@
 ---
-title: "投球軌道シミュレータ"
+title: "Baseball Pitch Trajectory Simulator"
 subtitle: "リリースからキャッチャーミットまで — 投球の3D軌道を見る"
 ---
 
