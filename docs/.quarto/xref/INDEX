@@ -1,0 +1,35 @@
+{
+  "index.qmd": {
+    "index.html": "16cbd8fa"
+  },
+  "getting-started.qmd": {
+    "getting-started.html": "0d141ed4"
+  },
+  "guides/rapsodo-mode.qmd": {
+    "rapsodo-mode.html": "46152fdb"
+  },
+  "guides/overlay-comparison.qmd": {
+    "overlay-comparison.html": "e493f694"
+  },
+  "guides/statcast-mode.qmd": {
+    "statcast-mode.html": "5189bb8f"
+  },
+  "guides/manual-mode.qmd": {
+    "manual-mode.html": "64e9a7ef"
+  },
+  "guides/batters-eye.qmd": {
+    "batters-eye.html": "b8d096be"
+  },
+  "guides/pitch-tunnel.qmd": {
+    "pitch-tunnel.html": "41ee3457"
+  },
+  "concepts/reading-the-output.qmd": {
+    "reading-the-output.html": "636a1611"
+  },
+  "concepts/spin-and-movement.qmd": {
+    "spin-and-movement.html": "0889a40c"
+  },
+  "concepts/pitch-tunneling.qmd": {
+    "pitch-tunneling.html": "06c578fb"
+  }
+}

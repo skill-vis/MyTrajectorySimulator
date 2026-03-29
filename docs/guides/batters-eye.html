@@ -7,7 +7,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
 
-<title>Pitch Tunneling – Baseball Pitch Trajectory Simulator</title>
+<title>Batter’s Eye – Baseball Pitch Trajectory Simulator</title>
 <style>
 /* Default styles provided by pandoc.
 ** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
@@ -322,7 +322,7 @@ ul.task-list li input[type="checkbox"] {
 <span class="menu-text"></span></a>
   </li>  
   <li class="nav-item">
-    <a class="nav-link" href="https://baseball.skill-vis.com"> 
+    <a class="nav-link" href="https://baseball.skill-vis.com" target="_blank"> 
 <span class="menu-text">Launch Simulator</span></a>
   </li>  
 </ul>
@@ -342,15 +342,21 @@ ul.task-list li input[type="checkbox"] {
     <h2 id="toc-title">On this page</h2>
    
   <ul>
-  <li><a href="#the-decision-point" id="toc-the-decision-point" class="nav-link active" data-scroll-target="#the-decision-point">The Decision Point</a></li>
-  <li><a href="#what-is-a-tunnel" id="toc-what-is-a-tunnel" class="nav-link" data-scroll-target="#what-is-a-tunnel">What Is a Tunnel?</a></li>
-  <li><a href="#using-the-simulator-for-tunnel-analysis" id="toc-using-the-simulator-for-tunnel-analysis" class="nav-link" data-scroll-target="#using-the-simulator-for-tunnel-analysis">Using the Simulator for Tunnel Analysis</a>
+  <li><a href="#overview" id="toc-overview" class="nav-link active" data-scroll-target="#overview">Overview</a></li>
+  <li><a href="#activating-batters-eye" id="toc-activating-batters-eye" class="nav-link" data-scroll-target="#activating-batters-eye">Activating Batter’s Eye</a></li>
+  <li><a href="#camera-position" id="toc-camera-position" class="nav-link" data-scroll-target="#camera-position">Camera Position</a></li>
+  <li><a href="#controls-in-first-person-mode" id="toc-controls-in-first-person-mode" class="nav-link" data-scroll-target="#controls-in-first-person-mode">Controls in First-Person Mode</a>
   <ul class="collapse">
-  <li><a href="#step-by-step" id="toc-step-by-step" class="nav-link" data-scroll-target="#step-by-step">Step-by-step</a></li>
-  <li><a href="#what-to-look-for" id="toc-what-to-look-for" class="nav-link" data-scroll-target="#what-to-look-for">What to look for</a></li>
-  <li><a href="#best-tunnel-pairs-to-test" id="toc-best-tunnel-pairs-to-test" class="nav-link" data-scroll-target="#best-tunnel-pairs-to-test">Best tunnel pairs to test</a></li>
+  <li><a href="#looking-around" id="toc-looking-around" class="nav-link" data-scroll-target="#looking-around">Looking Around</a></li>
+  <li><a href="#moving-position" id="toc-moving-position" class="nav-link" data-scroll-target="#moving-position">Moving Position</a></li>
+  <li><a href="#ball-tracking" id="toc-ball-tracking" class="nav-link" data-scroll-target="#ball-tracking">Ball Tracking</a></li>
   </ul></li>
-  <li><a href="#why-tunneling-works" id="toc-why-tunneling-works" class="nav-link" data-scroll-target="#why-tunneling-works">Why Tunneling Works</a></li>
+  <li><a href="#best-uses" id="toc-best-uses" class="nav-link" data-scroll-target="#best-uses">Best Uses</a>
+  <ul class="collapse">
+  <li><a href="#tunnel-evaluation" id="toc-tunnel-evaluation" class="nav-link" data-scroll-target="#tunnel-evaluation">Tunnel evaluation</a></li>
+  <li><a href="#pitch-recognition-training" id="toc-pitch-recognition-training" class="nav-link" data-scroll-target="#pitch-recognition-training">Pitch recognition training</a></li>
+  <li><a href="#video-export" id="toc-video-export" class="nav-link" data-scroll-target="#video-export">Video export</a></li>
+  </ul></li>
   </ul>
 </nav>
     </div>
@@ -360,8 +366,8 @@ ul.task-list li input[type="checkbox"] {
 
 <header id="title-block-header" class="quarto-title-block default">
 <div class="quarto-title">
-<h1 class="title">Pitch Tunneling</h1>
-<p class="subtitle lead">Why the best pitch pairs look identical — until it’s too late</p>
+<h1 class="title">Batter’s Eye</h1>
+<p class="subtitle lead">See the pitch from the hitter’s perspective</p>
 </div>
 
 
@@ -378,98 +384,164 @@ ul.task-list li input[type="checkbox"] {
 </header>
 
 
-<section id="the-decision-point" class="level2">
-<h2 class="anchored" data-anchor-id="the-decision-point">The Decision Point</h2>
-<p>A 95-mph fastball reaches home plate in about <strong>400 milliseconds</strong>. But the batter must commit to swinging — or not — roughly <strong>170 ms before the ball arrives</strong>. At that moment, the ball is still about <strong>23–24 feet from the plate</strong>.</p>
-<p>This is the <strong>decision point</strong>: the last instant where the batter can change their mind.</p>
+<section id="overview" class="level2">
+<h2 class="anchored" data-anchor-id="overview">Overview</h2>
+<p>Batter’s Eye places the camera at the batter’s eye position in the batter’s box. You see the pitch coming toward you — just as the hitter does.</p>
 </section>
-<section id="what-is-a-tunnel" class="level2">
-<h2 class="anchored" data-anchor-id="what-is-a-tunnel">What Is a Tunnel?</h2>
-<p>A pitch tunnel exists when <strong>two different pitches occupy the same space at the decision point</strong>.</p>
-<p>If a fastball and a changeup pass through the same location 23.8 feet from home plate, traveling at a similar angle, the batter cannot tell them apart at the moment of decision. They are forced to guess.</p>
-<p>After the decision point, the two pitches diverge — the fastball stays up, the changeup drops. But by then, the batter has already committed.</p>
-<p><strong>The greater the separation at home plate, and the smaller the separation at the tunnel point, the more effective the pair.</strong></p>
-</section>
-<section id="using-the-simulator-for-tunnel-analysis" class="level2">
-<h2 class="anchored" data-anchor-id="using-the-simulator-for-tunnel-analysis">Using the Simulator for Tunnel Analysis</h2>
-<section id="step-by-step" class="level3">
-<h3 class="anchored" data-anchor-id="step-by-step">Step-by-step</h3>
-<ol type="1">
-<li><strong>Turn on Overlay mode</strong> (toggle button near Simulate)</li>
-<li><strong>Simulate a fastball</strong> (e.g., select an FF from the pitch list)</li>
-<li><strong>Simulate a changeup</strong> (select a CH from the same game)</li>
-<li><strong>Turn on Tunnel visualization</strong> (Tunnel button in the toolbar)</li>
-</ol>
-<p>You will see:</p>
-<ul>
-<li>Two trajectory lines, color-coded by pitch type</li>
-<li>A transparent <strong>tunnel cylinder</strong> from the release point to the 23.8-ft crossing point</li>
-<li><strong>Ring markers</strong> at the tunnel point for each pitch</li>
-</ul>
-<p><strong>If the rings overlap, the pitches tunnel well.</strong> The batter sees the same thing at the point of decision.</p>
-</section>
-<section id="what-to-look-for" class="level3">
-<h3 class="anchored" data-anchor-id="what-to-look-for">What to look for</h3>
+<section id="activating-batters-eye" class="level2">
+<h2 class="anchored" data-anchor-id="activating-batters-eye">Activating Batter’s Eye</h2>
+<p>Click one of two buttons in the toolbar:</p>
 <table class="caption-top table">
 <colgroup>
-<col style="width: 48%">
-<col style="width: 52%">
+<col style="width: 38%">
+<col style="width: 61%">
 </colgroup>
 <thead>
 <tr class="header">
-<th>Good tunnel</th>
-<th>Poor tunnel</th>
+<th>Button</th>
+<th>Description</th>
 </tr>
 </thead>
 <tbody>
 <tr class="odd">
-<td>Rings nearly overlap at 23.8 ft</td>
-<td>Rings are far apart</td>
+<td><strong>Batter’s Eye</strong></td>
+<td>View from the batter’s box matching the current batter’s handedness</td>
 </tr>
 <tr class="even">
-<td>Pitches diverge only after the tunnel point</td>
-<td>Pitches are already separated at the tunnel point</td>
-</tr>
-<tr class="odd">
-<td>Similar release point</td>
-<td>Different release points</td>
-</tr>
-<tr class="even">
-<td>Large separation at home plate</td>
-<td>Small separation at home plate</td>
+<td><strong>Opposite Eye</strong></td>
+<td>View from the opposite batter’s box</td>
 </tr>
 </tbody>
 </table>
+<p>The camera moves to the batter’s eye position. The 3D batter figure hides so it doesn’t block your view.</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="../images/batters-eye.png" class="img-fluid figure-img" alt="First-person view from the batter's box showing an incoming pitch"></p>
+<figcaption>Batter’s Eye view — seeing the pitch approach from the batter’s box</figcaption>
+</figure>
+</div>
 </section>
-<section id="best-tunnel-pairs-to-test" class="level3">
-<h3 class="anchored" data-anchor-id="best-tunnel-pairs-to-test">Best tunnel pairs to test</h3>
+<section id="camera-position" class="level2">
+<h2 class="anchored" data-anchor-id="camera-position">Camera Position</h2>
+<p>The eye position is determined by:</p>
 <ul>
-<li><strong>FF + CH</strong> (fastball / changeup) — speed difference with similar trajectory</li>
-<li><strong>FF + FS</strong> (fastball / splitter) — similar top of zone, splitter falls late</li>
-<li><strong>FF + SL</strong> (fastball / slider) — horizontal divergence after tunnel</li>
-<li><strong>FC + CH</strong> (cutter / changeup) — similar arm action</li>
+<li><strong>X (lateral)</strong>: ±0.65 m from center, based on batter handedness (R = right box, L = left box)</li>
+<li><strong>Y (depth)</strong>: 0.216 m behind home plate</li>
+<li><strong>Z (height)</strong>: When Statcast data is available, the height is set to <strong>sz_top + 0.3 m</strong> (strike zone top + 30 cm). Without Statcast data, it defaults to 1.45 m (batter model head height).</li>
 </ul>
+</section>
+<section id="controls-in-first-person-mode" class="level2">
+<h2 class="anchored" data-anchor-id="controls-in-first-person-mode">Controls in First-Person Mode</h2>
+<section id="looking-around" class="level3">
+<h3 class="anchored" data-anchor-id="looking-around">Looking Around</h3>
+<ul>
+<li><strong>Mouse drag</strong> — rotate your view (turn your head)</li>
+<li><strong>Scroll wheel</strong> — adjust field of view (FOV)</li>
+</ul>
+</section>
+<section id="moving-position" class="level3">
+<h3 class="anchored" data-anchor-id="moving-position">Moving Position</h3>
+<p>You can fine-tune the eye position with keyboard controls:</p>
+<table class="caption-top table">
+<thead>
+<tr class="header">
+<th>Key</th>
+<th>Direction</th>
+<th>Amount</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><strong>W</strong></td>
+<td>Forward (toward pitcher)</td>
+<td>1 cm</td>
+</tr>
+<tr class="even">
+<td><strong>S</strong></td>
+<td>Backward (toward catcher)</td>
+<td>1 cm</td>
+</tr>
+<tr class="odd">
+<td><strong>A</strong></td>
+<td>Left (toward 1st base)</td>
+<td>1 cm</td>
+</tr>
+<tr class="even">
+<td><strong>D</strong></td>
+<td>Right (toward 3rd base)</td>
+<td>1 cm</td>
+</tr>
+<tr class="odd">
+<td><strong>E</strong></td>
+<td>Up</td>
+<td>1 cm</td>
+</tr>
+<tr class="even">
+<td><strong>Q</strong></td>
+<td>Down</td>
+<td>1 cm</td>
+</tr>
+</tbody>
+</table>
+<p>The offset from the original position is displayed in the top-left overlay:</p>
+<pre><code>Eye offset: X +3cm  Y -1cm  Z +2cm</code></pre>
+</section>
+<section id="ball-tracking" class="level3">
+<h3 class="anchored" data-anchor-id="ball-tracking">Ball Tracking</h3>
+<table class="caption-top table">
+<colgroup>
+<col style="width: 31%">
+<col style="width: 68%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>Mode</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><strong>Track: Ball</strong> (default)</td>
+<td>Camera automatically follows the ball during playback</td>
+</tr>
+<tr class="even">
+<td><strong>Track: Pitcher</strong></td>
+<td>Camera stays fixed, looking toward the mound</td>
+</tr>
+</tbody>
+</table>
+<p>Click the toggle button in the overlay to switch.</p>
+</section>
+</section>
+<section id="best-uses" class="level2">
+<h2 class="anchored" data-anchor-id="best-uses">Best Uses</h2>
+<section id="tunnel-evaluation" class="level3">
+<h3 class="anchored" data-anchor-id="tunnel-evaluation">Tunnel evaluation</h3>
+<p>Enable overlay, simulate a fastball and a changeup, then switch to Batter’s Eye. Play the animation and watch both balls approach. If you can’t tell them apart until the last moment, the tunnel is effective.</p>
+</section>
+<section id="pitch-recognition-training" class="level3">
+<h3 class="anchored" data-anchor-id="pitch-recognition-training">Pitch recognition training</h3>
+<p>Watch a pitch in Batter’s Eye mode at slow speed (use frame stepping with ← → keys). Notice when you can first see the difference between a fastball and a slider.</p>
+</section>
+<section id="video-export" class="level3">
+<h3 class="anchored" data-anchor-id="video-export">Video export</h3>
+<p>Record the Batter’s Eye view as MP4 with the <strong>REC Slow</strong> button. Share the video to show what the batter sees.</p>
 <div class="callout callout-style-default callout-tip callout-titled">
 <div class="callout-header d-flex align-content-center">
 <div class="callout-icon-container">
 <i class="callout-icon"></i>
 </div>
 <div class="callout-title-container flex-fill">
-<span class="screen-reader-only">Tip</span>Try Batter’s Eye + Tunnel
+<span class="screen-reader-only">Tip</span>Combine with Spin Axis
 </div>
 </div>
 <div class="callout-body-container callout-body">
-<p>Enable Batter’s Eye view while looking at a tunneled pair. You will see both pitches arriving from the batter’s perspective — and experience firsthand why the batter can’t distinguish them until it’s too late.</p>
+<p>Enable the <strong>Spin Axis</strong> button while in Batter’s Eye. You’ll see the spin axis arrow on the approaching ball — this is the visual cue that elite hitters use to identify pitch type.</p>
 </div>
 </div>
-</section>
-</section>
-<section id="why-tunneling-works" class="level2">
-<h2 class="anchored" data-anchor-id="why-tunneling-works">Why Tunneling Works</h2>
-<p>The human visual system needs time to process changes in trajectory. Research suggests that batters track the ball’s position and velocity, then extrapolate forward. If two pitches have the same position and direction at the decision point, the batter’s brain generates the same prediction for both — even though they will end up in different locations.</p>
-<p>Effective tunneling is not just about having a good fastball or a good changeup. It’s about <strong>how well they pair together</strong> — and that’s exactly what the simulator lets you evaluate.</p>
 
 
+</section>
 </section>
 
 </main> <!-- /main -->

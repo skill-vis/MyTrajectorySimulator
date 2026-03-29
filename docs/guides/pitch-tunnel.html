@@ -7,7 +7,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
 
-<title>Reading the Output – Baseball Pitch Trajectory Simulator</title>
+<title>Pitch Tunnel Visualization – Baseball Pitch Trajectory Simulator</title>
 <style>
 /* Default styles provided by pandoc.
 ** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
@@ -322,7 +322,7 @@ ul.task-list li input[type="checkbox"] {
 <span class="menu-text"></span></a>
   </li>  
   <li class="nav-item">
-    <a class="nav-link" href="https://baseball.skill-vis.com"> 
+    <a class="nav-link" href="https://baseball.skill-vis.com" target="_blank"> 
 <span class="menu-text">Launch Simulator</span></a>
   </li>  
 </ul>
@@ -342,22 +342,16 @@ ul.task-list li input[type="checkbox"] {
     <h2 id="toc-title">On this page</h2>
    
   <ul>
-  <li><a href="#the-3d-view" id="toc-the-3d-view" class="nav-link active" data-scroll-target="#the-3d-view">The 3D View</a>
+  <li><a href="#overview" id="toc-overview" class="nav-link active" data-scroll-target="#overview">Overview</a></li>
+  <li><a href="#turning-on-the-tunnel" id="toc-turning-on-the-tunnel" class="nav-link" data-scroll-target="#turning-on-the-tunnel">Turning On the Tunnel</a></li>
+  <li><a href="#what-you-see" id="toc-what-you-see" class="nav-link" data-scroll-target="#what-you-see">What You See</a></li>
+  <li><a href="#reading-the-tunnel-data" id="toc-reading-the-tunnel-data" class="nav-link" data-scroll-target="#reading-the-tunnel-data">Reading the Tunnel Data</a></li>
+  <li><a href="#tunnel-overlay-a-practical-example" id="toc-tunnel-overlay-a-practical-example" class="nav-link" data-scroll-target="#tunnel-overlay-a-practical-example">Tunnel + Overlay: A Practical Example</a>
   <ul class="collapse">
-  <li><a href="#trajectory-lines" id="toc-trajectory-lines" class="nav-link" data-scroll-target="#trajectory-lines">Trajectory Lines</a></li>
-  <li><a href="#markers-at-home-plate" id="toc-markers-at-home-plate" class="nav-link" data-scroll-target="#markers-at-home-plate">Markers at Home Plate</a></li>
-  <li><a href="#the-ball" id="toc-the-ball" class="nav-link" data-scroll-target="#the-ball">The Ball</a></li>
+  <li><a href="#ohtanis-ff-vs-st-2026-03-24" id="toc-ohtanis-ff-vs-st-2026-03-24" class="nav-link" data-scroll-target="#ohtanis-ff-vs-st-2026-03-24">Ohtani’s FF vs ST (2026-03-24)</a></li>
+  <li><a href="#sengas-ff-vs-fo-2026-03-19" id="toc-sengas-ff-vs-fo-2026-03-19" class="nav-link" data-scroll-target="#sengas-ff-vs-fo-2026-03-19">Senga’s FF vs FO (2026-03-19)</a></li>
   </ul></li>
-  <li><a href="#the-left-panel" id="toc-the-left-panel" class="nav-link" data-scroll-target="#the-left-panel">The Left Panel</a>
-  <ul class="collapse">
-  <li><a href="#position-and-velocity" id="toc-position-and-velocity" class="nav-link" data-scroll-target="#position-and-velocity">Position and Velocity</a></li>
-  <li><a href="#spin-components" id="toc-spin-components" class="nav-link" data-scroll-target="#spin-components">Spin Components</a></li>
-  <li><a href="#spin-efficiency-and-axis" id="toc-spin-efficiency-and-axis" class="nav-link" data-scroll-target="#spin-efficiency-and-axis">Spin Efficiency and Axis</a></li>
-  <li><a href="#home-plate-results" id="toc-home-plate-results" class="nav-link" data-scroll-target="#home-plate-results">Home Plate Results</a></li>
-  </ul></li>
-  <li><a href="#overlay-statistics" id="toc-overlay-statistics" class="nav-link" data-scroll-target="#overlay-statistics">Overlay Statistics</a></li>
-  <li><a href="#the-chart" id="toc-the-chart" class="nav-link" data-scroll-target="#the-chart">The Chart</a></li>
-  <li><a href="#csv-export" id="toc-csv-export" class="nav-link" data-scroll-target="#csv-export">CSV Export</a></li>
+  <li><a href="#tips" id="toc-tips" class="nav-link" data-scroll-target="#tips">Tips</a></li>
   </ul>
 </nav>
     </div>
@@ -367,8 +361,8 @@ ul.task-list li input[type="checkbox"] {
 
 <header id="title-block-header" class="quarto-title-block default">
 <div class="quarto-title">
-<h1 class="title">Reading the Output</h1>
-<p class="subtitle lead">What all the numbers and lines mean</p>
+<h1 class="title">Pitch Tunnel Visualization</h1>
+<p class="subtitle lead">Visualize the 23.8-ft tunnel where the batter decides</p>
 </div>
 
 
@@ -385,258 +379,65 @@ ul.task-list li input[type="checkbox"] {
 </header>
 
 
-<section id="the-3d-view" class="level2">
-<h2 class="anchored" data-anchor-id="the-3d-view">The 3D View</h2>
-<section id="trajectory-lines" class="level3">
-<h3 class="anchored" data-anchor-id="trajectory-lines">Trajectory Lines</h3>
-<table class="caption-top table">
-<colgroup>
-<col style="width: 27%">
-<col style="width: 31%">
-<col style="width: 40%">
-</colgroup>
-<thead>
-<tr class="header">
-<th>Line</th>
-<th>Color</th>
-<th>Meaning</th>
-</tr>
-</thead>
-<tbody>
-<tr class="odd">
-<td><strong>Spin trajectory</strong></td>
-<td>Orange (or overlay color)</td>
-<td>The ball’s actual path, including all spin effects</td>
-</tr>
-<tr class="even">
-<td><strong>No-spin trajectory</strong></td>
-<td>Cyan dashed</td>
-<td>Where the ball would go with gravity only (no spin)</td>
-</tr>
-<tr class="odd">
-<td><strong>Gap between them</strong></td>
-<td>—</td>
-<td>This <em>is</em> the spin movement</td>
-</tr>
-</tbody>
-</table>
+<section id="overview" class="level2">
+<h2 class="anchored" data-anchor-id="overview">Overview</h2>
+<p>The Tunnel feature shows where each pitch crosses the 23.8-ft decision point — the last moment the batter can change their swing decision.</p>
 </section>
-<section id="markers-at-home-plate" class="level3">
-<h3 class="anchored" data-anchor-id="markers-at-home-plate">Markers at Home Plate</h3>
-<table class="caption-top table">
-<colgroup>
-<col style="width: 33%">
-<col style="width: 29%">
-<col style="width: 37%">
-</colgroup>
-<thead>
-<tr class="header">
-<th>Marker</th>
-<th>Color</th>
-<th>Meaning</th>
-</tr>
-</thead>
-<tbody>
-<tr class="odd">
-<td><strong>Filled circle</strong></td>
-<td>Orange (or overlay color)</td>
-<td>Simulated home plate crossing</td>
-</tr>
-<tr class="even">
-<td><strong>Dashed ring</strong></td>
-<td>Same color</td>
-<td>Statcast actual crossing (Hawk-Eye measured)</td>
-</tr>
-<tr class="odd">
-<td><strong>Filled circle</strong></td>
-<td>Cyan</td>
-<td>No-spin crossing</td>
-</tr>
-<tr class="even">
-<td><strong>ω arrow</strong></td>
-<td>Same as trajectory</td>
-<td>Spin axis direction at home plate</td>
-</tr>
-</tbody>
-</table>
+<section id="turning-on-the-tunnel" class="level2">
+<h2 class="anchored" data-anchor-id="turning-on-the-tunnel">Turning On the Tunnel</h2>
+<p>Click the <strong>Tunnel</strong> button in the toolbar. It toggles on/off (green = on).</p>
 </section>
-<section id="the-ball" class="level3">
-<h3 class="anchored" data-anchor-id="the-ball">The Ball</h3>
-<p>The animated baseball has a <strong>procedural seam texture</strong> and rotates at the actual angular velocity. When the <strong>Spin Axis</strong> button is enabled, an arrow through the ball shows the spin axis:</p>
+<section id="what-you-see" class="level2">
+<h2 class="anchored" data-anchor-id="what-you-see">What You See</h2>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="../images/tunnel.png" class="img-fluid figure-img" alt="Tunnel visualization with two overlaid pitches and yellow tunnel cylinder"></p>
+<figcaption>Pitch tunnel visualization — the yellow cylinder shows the corridor from release to the decision point</figcaption>
+</figure>
+</div>
+<p>When Tunnel is enabled, the 3D view shows:</p>
 <ul>
-<li><strong>Arrow with head</strong> → spin axis positive direction</li>
-<li><strong>Arrow without head</strong> → opposite direction</li>
-<li><strong>Arrow length</strong> → proportional to spin rate (longer = faster spin)</li>
+<li><strong>Yellow rings</strong> — one at the release point and one at the 23.8-ft crossing point</li>
+<li><strong>Transparent yellow cylinder</strong> — connecting the two points, showing the “tunnel” corridor</li>
 </ul>
+<p>When you overlay multiple pitches, each pitch gets its own tunnel cylinder. If the 23.8-ft rings overlap, those pitches tunnel well.</p>
 </section>
+<section id="reading-the-tunnel-data" class="level2">
+<h2 class="anchored" data-anchor-id="reading-the-tunnel-data">Reading the Tunnel Data</h2>
+<p>The left panel shows the tunnel crossing coordinates:</p>
+<pre><code>● Tunnel (23.8ft) x=-0.404m, z=1.410m</code></pre>
+<p>This is the ball’s position when it crosses the 23.8-ft plane. Compare these coordinates across overlaid pitches — the closer they are, the better the tunnel.</p>
 </section>
-<section id="the-left-panel" class="level2">
-<h2 class="anchored" data-anchor-id="the-left-panel">The Left Panel</h2>
-<section id="position-and-velocity" class="level3">
-<h3 class="anchored" data-anchor-id="position-and-velocity">Position and Velocity</h3>
-<pre><code>Position: (-0.774, 16.37, 1.740) m
-v0: 38.69 m/s  theta: -0.67°  phi: 1.41°</code></pre>
-<ul>
-<li><strong>Position</strong> — release point in meters (x = lateral, y = toward home, z = height)</li>
-<li><strong>v₀</strong> — release speed in m/s</li>
-<li><strong>θ (theta)</strong> — vertical angle (negative = downward)</li>
-<li><strong>φ (phi)</strong> — horizontal angle</li>
-</ul>
-</section>
-<section id="spin-components" class="level3">
-<h3 class="anchored" data-anchor-id="spin-components">Spin Components</h3>
-<pre><code>Backspin: 759 rpm  Side: 1824 rpm  Gyro: 1516 rpm  Spin: 2467 rpm
-ωx: -108.2 rad/s  ωy: -42.3 rad/s  ωz: 191.0 rad/s  |ω|: 225.1 rad/s</code></pre>
-<table class="caption-top table">
-<colgroup>
-<col style="width: 43%">
-<col style="width: 56%">
-</colgroup>
-<thead>
-<tr class="header">
-<th>Value</th>
-<th>Meaning</th>
-</tr>
-</thead>
-<tbody>
-<tr class="odd">
-<td><strong>Backspin</strong></td>
-<td>Rotation creating vertical movement (rpm)</td>
-</tr>
-<tr class="even">
-<td><strong>Sidespin</strong></td>
-<td>Rotation creating horizontal movement (rpm)</td>
-</tr>
-<tr class="odd">
-<td><strong>Gyrospin</strong></td>
-<td>Rotation along the ball’s travel direction — no movement effect (rpm)</td>
-</tr>
-<tr class="even">
-<td><strong>Spin</strong></td>
-<td>Total angular velocity magnitude (= |ω| in rpm)</td>
-</tr>
-<tr class="odd">
-<td><strong>ωx, ωy, ωz</strong></td>
-<td>Angular velocity in the absolute coordinate system (rad/s)</td>
-</tr>
-<tr class="even">
-<td><strong>|ω|</strong></td>
-<td>Same as Spin, in rad/s</td>
-</tr>
-</tbody>
-</table>
-</section>
-<section id="spin-efficiency-and-axis" class="level3">
-<h3 class="anchored" data-anchor-id="spin-efficiency-and-axis">Spin Efficiency and Axis</h3>
-<pre><code>Spin eff: 79.3%  Axis(pfx): 112.6°  Axis(SC): 69.0°  Batter: R</code></pre>
-<table class="caption-top table">
-<colgroup>
-<col style="width: 43%">
-<col style="width: 56%">
-</colgroup>
-<thead>
-<tr class="header">
-<th>Value</th>
-<th>Meaning</th>
-</tr>
-</thead>
-<tbody>
-<tr class="odd">
-<td><strong>Spin eff</strong></td>
-<td>Percentage of spin that creates movement (100% = all active spin)</td>
-</tr>
-<tr class="even">
-<td><strong>Axis(pfx)</strong></td>
-<td>Spin axis angle computed from the simulation’s pitch movement</td>
-</tr>
-<tr class="odd">
-<td><strong>Axis(SC)</strong></td>
-<td>Spin axis angle as reported by Statcast</td>
-</tr>
-<tr class="even">
-<td><strong>Batter</strong></td>
-<td>Batter handedness (R or L)</td>
-</tr>
-</tbody>
-</table>
-</section>
-<section id="home-plate-results" class="level3">
-<h3 class="anchored" data-anchor-id="home-plate-results">Home Plate Results</h3>
-<pre><code>● Sim (spin) Home: x=0.102m, z=0.806m
-● Sim (no spin) Home: x=-0.371m, z=0.619m
-● Spin movement: horiz 47.4cm, vert 18.8cm
-○ Statcast actual Home: x=0.028m, z=0.813m
-● Sim vs Statcast diff: horiz 7.4cm, vert -0.7cm</code></pre>
-<table class="caption-top table">
-<colgroup>
-<col style="width: 43%">
-<col style="width: 56%">
-</colgroup>
-<thead>
-<tr class="header">
-<th>Value</th>
-<th>Meaning</th>
-</tr>
-</thead>
-<tbody>
-<tr class="odd">
-<td><strong>Sim (spin) Home</strong></td>
-<td>Where the simulation says the ball crosses home plate</td>
-</tr>
-<tr class="even">
-<td><strong>Sim (no spin) Home</strong></td>
-<td>Where the ball would cross without spin</td>
-</tr>
-<tr class="odd">
-<td><strong>Spin movement</strong></td>
-<td>The difference = how much spin moved the ball</td>
-</tr>
-<tr class="even">
-<td><strong>Statcast actual</strong></td>
-<td>Where Hawk-Eye actually measured the ball</td>
-</tr>
-<tr class="odd">
-<td><strong>Sim vs Statcast diff</strong></td>
-<td>Accuracy of the simulation (smaller = better)</td>
-</tr>
-</tbody>
-</table>
-<div class="callout callout-style-default callout-note callout-titled">
-<div class="callout-header d-flex align-content-center">
-<div class="callout-icon-container">
-<i class="callout-icon"></i>
-</div>
-<div class="callout-title-container flex-fill">
-<span class="screen-reader-only">Note</span>Typical accuracy
-</div>
-</div>
-<div class="callout-body-container callout-body">
-<p>The simulation typically matches Statcast within <strong>5–10 cm</strong>. Differences come from:</p>
-<ul>
-<li>Gyrospin estimation (Statcast doesn’t measure all 3 spin components directly)</li>
-<li>Environmental conditions (the simulation uses standard air density)</li>
-<li>Seam orientation effects (not modeled)</li>
-</ul>
-</div>
-</div>
-</section>
-</section>
-<section id="overlay-statistics" class="level2">
-<h2 class="anchored" data-anchor-id="overlay-statistics">Overlay Statistics</h2>
-<p>When 2+ pitches are overlaid, a collapsible <strong>Overlay Statistics</strong> section appears showing mean ± σ, min, and max for all parameters. This includes both simulated values and Statcast-measured spin movement (SC Move Horiz/Vert).</p>
-</section>
-<section id="the-chart" class="level2">
-<h2 class="anchored" data-anchor-id="the-chart">The Chart</h2>
-<p>Below the 3D view, a chart shows the drag coefficient (Cd) and lift coefficient (Cl) along the trajectory. These values come from the aerodynamic model and are useful for researchers. The chart can be hidden by collapsing its section.</p>
-</section>
-<section id="csv-export" class="level2">
-<h2 class="anchored" data-anchor-id="csv-export">CSV Export</h2>
-<p>Click <strong>CSV Export</strong> to download two files:</p>
+<section id="tunnel-overlay-a-practical-example" class="level2">
+<h2 class="anchored" data-anchor-id="tunnel-overlay-a-practical-example">Tunnel + Overlay: A Practical Example</h2>
+<section id="ohtanis-ff-vs-st-2026-03-24" class="level3">
+<h3 class="anchored" data-anchor-id="ohtanis-ff-vs-st-2026-03-24">Ohtani’s FF vs ST (2026-03-24)</h3>
 <ol type="1">
-<li><strong>pitch_summary.csv</strong> — one row per parameter, one column per pitch. Includes statistics rows (mean, std, min, max) when multiple pitches are overlaid.</li>
-<li><strong>trajectory_detail.csv</strong> — full time-step data: position, velocity, acceleration, drag force, Magnus force, gravity, Cd, Cl.</li>
+<li>Search “Ohtani”, select 2026-03-24</li>
+<li>Select pitch <strong>#7</strong> (FF, 97 mph) — Simulate with Overlay checked</li>
+<li>Select pitch <strong>#83</strong> (ST, 81 mph) — Simulate</li>
+<li>Enable <strong>Tunnel</strong></li>
 </ol>
-<p>Both files include a header comment crediting Alan Nathan’s trajectory calculator.</p>
+<p>These two pitches have a release angle difference of only 0.234°. Despite a 16 mph speed difference, they pass through nearly the same point at 23.8 ft.</p>
+</section>
+<section id="sengas-ff-vs-fo-2026-03-19" class="level3">
+<h3 class="anchored" data-anchor-id="sengas-ff-vs-fo-2026-03-19">Senga’s FF vs FO (2026-03-19)</h3>
+<ol type="1">
+<li>Search “Senga”, select 2026-03-19</li>
+<li>Select pitch <strong>#54</strong> (FF, 95 mph) — Simulate with Overlay</li>
+<li>Select pitch <strong>#30</strong> (FO, 87 mph) — Simulate</li>
+<li>Enable <strong>Tunnel</strong> and <strong>Batter’s Eye</strong></li>
+</ol>
+<p>Release angle difference: only 0.095°. The forkball (“ghost fork”) looks identical to the fastball at the decision point.</p>
+</section>
+</section>
+<section id="tips" class="level2">
+<h2 class="anchored" data-anchor-id="tips">Tips</h2>
+<ul>
+<li>The tunnel visualization works in <strong>all view modes</strong> including Batter’s Eye</li>
+<li>Use <strong>frame stepping</strong> (← → keys) to pause the animation at exactly the tunnel crossing point</li>
+<li>The tunnel cylinder radius is approximately 2× the ball diameter — representing the area where the batter cannot reliably distinguish between pitches</li>
+</ul>
 
 
 </section>

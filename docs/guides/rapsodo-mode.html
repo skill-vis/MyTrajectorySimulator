@@ -7,7 +7,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
 
-<title>Manual Input – Baseball Pitch Trajectory Simulator</title>
+<title>Rapsodo Input – Baseball Pitch Trajectory Simulator</title>
 <style>
 /* Default styles provided by pandoc.
 ** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
@@ -322,7 +322,7 @@ ul.task-list li input[type="checkbox"] {
 <span class="menu-text"></span></a>
   </li>  
   <li class="nav-item">
-    <a class="nav-link" href="https://baseball.skill-vis.com"> 
+    <a class="nav-link" href="https://baseball.skill-vis.com" target="_blank"> 
 <span class="menu-text">Launch Simulator</span></a>
   </li>  
 </ul>
@@ -343,13 +343,17 @@ ul.task-list li input[type="checkbox"] {
    
   <ul>
   <li><a href="#overview" id="toc-overview" class="nav-link active" data-scroll-target="#overview">Overview</a></li>
-  <li><a href="#parameters" id="toc-parameters" class="nav-link" data-scroll-target="#parameters">Parameters</a></li>
-  <li><a href="#release-position" id="toc-release-position" class="nav-link" data-scroll-target="#release-position">Release Position</a></li>
-  <li><a href="#experimenting" id="toc-experimenting" class="nav-link" data-scroll-target="#experimenting">Experimenting</a>
+  <li><a href="#opening-the-rapsodo-dialog" id="toc-opening-the-rapsodo-dialog" class="nav-link" data-scroll-target="#opening-the-rapsodo-dialog">Opening the Rapsodo Dialog</a></li>
+  <li><a href="#input-fields" id="toc-input-fields" class="nav-link" data-scroll-target="#input-fields">Input Fields</a>
   <ul class="collapse">
-  <li><a href="#changing-one-thing-at-a-time" id="toc-changing-one-thing-at-a-time" class="nav-link" data-scroll-target="#changing-one-thing-at-a-time">Changing one thing at a time</a></li>
-  <li><a href="#quick-presets-to-try" id="toc-quick-presets-to-try" class="nav-link" data-scroll-target="#quick-presets-to-try">Quick presets to try</a></li>
+  <li><a href="#pitcher" id="toc-pitcher" class="nav-link" data-scroll-target="#pitcher">Pitcher</a></li>
+  <li><a href="#velocity" id="toc-velocity" class="nav-link" data-scroll-target="#velocity">Velocity</a></li>
+  <li><a href="#spin" id="toc-spin" class="nav-link" data-scroll-target="#spin">Spin</a></li>
+  <li><a href="#release-position" id="toc-release-position" class="nav-link" data-scroll-target="#release-position">Release Position</a></li>
   </ul></li>
+  <li><a href="#how-the-conversion-works" id="toc-how-the-conversion-works" class="nav-link" data-scroll-target="#how-the-conversion-works">How the Conversion Works</a></li>
+  <li><a href="#overlay-mode" id="toc-overlay-mode" class="nav-link" data-scroll-target="#overlay-mode">Overlay Mode</a></li>
+  <li><a href="#limitations" id="toc-limitations" class="nav-link" data-scroll-target="#limitations">Limitations</a></li>
   </ul>
 </nav>
     </div>
@@ -359,8 +363,8 @@ ul.task-list li input[type="checkbox"] {
 
 <header id="title-block-header" class="quarto-title-block default">
 <div class="quarto-title">
-<h1 class="title">Manual Input</h1>
-<p class="subtitle lead">Set your own parameters with sliders</p>
+<h1 class="title">Rapsodo Input</h1>
+<p class="subtitle lead">Enter your Rapsodo measurements and simulate the trajectory</p>
 </div>
 
 
@@ -379,164 +383,161 @@ ul.task-list li input[type="checkbox"] {
 
 <section id="overview" class="level2">
 <h2 class="anchored" data-anchor-id="overview">Overview</h2>
-<p>Manual Input mode lets you control every parameter directly using sliders. This is useful for:</p>
-<ul>
-<li>Testing “what if” scenarios (e.g., what happens if I add 200 rpm of backspin?)</li>
-<li>Understanding how each parameter affects trajectory</li>
-<li>Entering data from sources other than Statcast or Rapsodo</li>
-</ul>
+<p>If you use a Rapsodo pitching unit, you can enter its measurements directly into the simulator. The system converts Rapsodo’s output format (speed, spin direction, gyro angle) into the physics parameters needed for trajectory simulation.</p>
 </section>
-<section id="parameters" class="level2">
-<h2 class="anchored" data-anchor-id="parameters">Parameters</h2>
+<section id="opening-the-rapsodo-dialog" class="level2">
+<h2 class="anchored" data-anchor-id="opening-the-rapsodo-dialog">Opening the Rapsodo Dialog</h2>
+<p>Click the <strong>Rapsodo</strong> button in the toolbar (next to the Simulate button). A dialog appears with input fields.</p>
+</section>
+<section id="input-fields" class="level2">
+<h2 class="anchored" data-anchor-id="input-fields">Input Fields</h2>
+<section id="pitcher" class="level3">
+<h3 class="anchored" data-anchor-id="pitcher">Pitcher</h3>
 <table class="caption-top table">
-<colgroup>
-<col style="width: 28%">
-<col style="width: 25%">
-<col style="width: 46%">
-</colgroup>
 <thead>
 <tr class="header">
-<th>Slider</th>
-<th>Range</th>
+<th>Field</th>
 <th>Description</th>
+<th>Default</th>
 </tr>
 </thead>
 <tbody>
 <tr class="odd">
-<td><strong>Speed</strong></td>
-<td>100–170 km/h</td>
-<td>Release speed</td>
+<td><strong>Hand</strong></td>
+<td>Pitcher’s throwing hand (R/L)</td>
+<td>Right</td>
 </tr>
 <tr class="even">
-<td><strong>Backspin</strong></td>
-<td>−3000 to 3000 rpm</td>
-<td>Backspin component (negative = topspin)</td>
-</tr>
-<tr class="odd">
-<td><strong>Sidespin</strong></td>
-<td>−3000 to 3000 rpm</td>
-<td>Sidespin component</td>
-</tr>
-<tr class="even">
-<td><strong>Gyrospin</strong></td>
-<td>−3000 to 3000 rpm</td>
-<td>Gyrospin component</td>
-</tr>
-<tr class="odd">
-<td><strong>Vert angle (θ)</strong></td>
-<td>−10° to 10°</td>
-<td>Vertical release angle</td>
-</tr>
-<tr class="even">
-<td><strong>Horiz angle (φ)</strong></td>
-<td>−10° to 10°</td>
-<td>Horizontal release angle</td>
+<td><strong>Batter Hand</strong></td>
+<td>Batter’s stance (R/L)</td>
+<td>Right</td>
 </tr>
 </tbody>
 </table>
-<p>Click <strong>Simulate</strong> to run the physics simulation with these values.</p>
 </section>
-<section id="release-position" class="level2">
-<h2 class="anchored" data-anchor-id="release-position">Release Position</h2>
-<p>The release position (x₀, y₀, z₀) is set based on the most recent Statcast pitch or the default values:</p>
-<ul>
-<li><strong>x₀</strong> = pitcher’s lateral offset (R: −0.47m, L: +0.47m)</li>
-<li><strong>y₀</strong> = 16.764m (55 ft from home plate — standard release distance)</li>
-<li><strong>z₀</strong> = 1.50m (approximate release height)</li>
-</ul>
-<p>When using Rapsodo mode, the release position updates automatically.</p>
-</section>
-<section id="experimenting" class="level2">
-<h2 class="anchored" data-anchor-id="experimenting">Experimenting</h2>
-<section id="changing-one-thing-at-a-time" class="level3">
-<h3 class="anchored" data-anchor-id="changing-one-thing-at-a-time">Changing one thing at a time</h3>
-<p>The best way to learn what each parameter does:</p>
-<ol type="1">
-<li>Start with a typical fastball (speed 150, backspin 2200, sidespin 0, gyrospin 0)</li>
-<li>Hit Simulate</li>
-<li>Change <strong>one slider</strong> (e.g., add 500 rpm sidespin)</li>
-<li>Turn on <strong>Overlay</strong>, hit Simulate again</li>
-<li>Compare the two trajectories</li>
-</ol>
-</section>
-<section id="quick-presets-to-try" class="level3">
-<h3 class="anchored" data-anchor-id="quick-presets-to-try">Quick presets to try</h3>
+<section id="velocity" class="level3">
+<h3 class="anchored" data-anchor-id="velocity">Velocity</h3>
 <table class="caption-top table">
 <thead>
 <tr class="header">
-<th>Preset</th>
-<th>Speed</th>
-<th>BS</th>
-<th>SS</th>
-<th>GS</th>
-<th>θ</th>
-<th>φ</th>
+<th>Field</th>
+<th>Description</th>
+<th>Example</th>
 </tr>
 </thead>
 <tbody>
 <tr class="odd">
-<td><strong>Four-seam fastball</strong></td>
-<td>155</td>
-<td>2200</td>
-<td>200</td>
-<td>0</td>
-<td>−1</td>
-<td>2</td>
+<td><strong>Speed (km/h)</strong></td>
+<td>Release speed</td>
+<td>131.6</td>
 </tr>
 <tr class="even">
-<td><strong>Curveball</strong></td>
-<td>125</td>
-<td>−2000</td>
-<td>800</td>
-<td>0</td>
-<td>2</td>
-<td>1</td>
+<td><strong>Vertical Angle (°)</strong></td>
+<td>Upward/downward release angle</td>
+<td>0.1</td>
 </tr>
 <tr class="odd">
-<td><strong>Slider</strong></td>
-<td>135</td>
-<td>200</td>
-<td>1800</td>
-<td>1000</td>
-<td>0</td>
-<td>1</td>
-</tr>
-<tr class="even">
-<td><strong>Changeup</strong></td>
-<td>140</td>
-<td>1400</td>
-<td>400</td>
-<td>0</td>
-<td>−1</td>
-<td>2</td>
-</tr>
-<tr class="odd">
-<td><strong>Gyro slider</strong></td>
-<td>135</td>
-<td>100</td>
-<td>500</td>
-<td>2000</td>
-<td>0</td>
-<td>1</td>
+<td><strong>Horizontal Angle (°)</strong></td>
+<td>Left/right release angle</td>
+<td>−2.6</td>
 </tr>
 </tbody>
 </table>
-<div class="callout callout-style-default callout-note callout-titled">
+</section>
+<section id="spin" class="level3">
+<h3 class="anchored" data-anchor-id="spin">Spin</h3>
+<table class="caption-top table">
+<thead>
+<tr class="header">
+<th>Field</th>
+<th>Description</th>
+<th>Example</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><strong>Spin Rate (rpm)</strong></td>
+<td>Total spin rate</td>
+<td>1772</td>
+</tr>
+<tr class="even">
+<td><strong>Spin Direction (HH:MM)</strong></td>
+<td>Clock-face spin direction</td>
+<td>01:18</td>
+</tr>
+<tr class="odd">
+<td><strong>Gyro Angle (°)</strong></td>
+<td>Gyroscopic spin angle</td>
+<td>21</td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="release-position" class="level3">
+<h3 class="anchored" data-anchor-id="release-position">Release Position</h3>
+<table class="caption-top table">
+<thead>
+<tr class="header">
+<th>Field</th>
+<th>Description</th>
+<th>Default</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><strong>Height (m)</strong></td>
+<td>Release height</td>
+<td>1.50</td>
+</tr>
+<tr class="even">
+<td><strong>Side (m)</strong></td>
+<td>Lateral offset from center</td>
+<td>0.47</td>
+</tr>
+</tbody>
+</table>
+</section>
+</section>
+<section id="how-the-conversion-works" class="level2">
+<h2 class="anchored" data-anchor-id="how-the-conversion-works">How the Conversion Works</h2>
+<p>The simulator internally converts Rapsodo measurements to the BSG (Backspin/Sidespin/Gyrospin) decomposition:</p>
+<ol type="1">
+<li><strong>Spin Direction</strong> (clock time like “01:18”) → spin tilt angle in degrees</li>
+<li><strong>Spin Rate + Tilt + Gyro Angle</strong> → angular velocity vector (ωx, ωy, ωz)</li>
+<li><strong>Angular velocity</strong> → Backspin, Sidespin, Gyrospin (via the M matrix)</li>
+</ol>
+<p>The converted values are shown at the bottom of the dialog after you click Simulate.</p>
+<div class="callout callout-style-default callout-tip callout-titled">
 <div class="callout-header d-flex align-content-center">
 <div class="callout-icon-container">
 <i class="callout-icon"></i>
 </div>
 <div class="callout-title-container flex-fill">
-Note
+<span class="screen-reader-only">Tip</span>Your data is saved
 </div>
 </div>
 <div class="callout-body-container callout-body">
-<p>These are rough approximations. Every pitcher is different — that’s what makes Statcast mode valuable.</p>
+<p>The numeric values you enter are saved in your browser’s local storage. Next time you open the Rapsodo dialog, the last values are pre-filled (except pitcher/batter hand, which always resets to Right).</p>
 </div>
 </div>
-
-
 </section>
+<section id="overlay-mode" class="level2">
+<h2 class="anchored" data-anchor-id="overlay-mode">Overlay Mode</h2>
+<p>Check the <strong>Overlay</strong> box in the Rapsodo dialog to overlay the Rapsodo-simulated pitch on top of an existing trajectory. This is useful for:</p>
+<ul>
+<li>Comparing your bullpen data (Rapsodo) with an MLB pitcher’s Statcast data</li>
+<li>Overlaying multiple bullpen pitches to check consistency</li>
+</ul>
+</section>
+<section id="limitations" class="level2">
+<h2 class="anchored" data-anchor-id="limitations">Limitations</h2>
+<ul>
+<li>Rapsodo does not provide the ball’s position at home plate, so there is no Statcast comparison marker</li>
+<li>The release position uses the values you enter (or defaults), not a measured position</li>
+<li>Environmental parameters (air density, temperature) are held constant at standard conditions</li>
+</ul>
+
+
 </section>
 
 </main> <!-- /main -->

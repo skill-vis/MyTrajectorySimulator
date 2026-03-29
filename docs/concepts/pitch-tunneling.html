@@ -7,7 +7,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
 
-<title>Overlay Comparison – Baseball Pitch Trajectory Simulator</title>
+<title>Pitch Tunneling – Baseball Pitch Trajectory Simulator</title>
 <style>
 /* Default styles provided by pandoc.
 ** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
@@ -322,7 +322,7 @@ ul.task-list li input[type="checkbox"] {
 <span class="menu-text"></span></a>
   </li>  
   <li class="nav-item">
-    <a class="nav-link" href="https://baseball.skill-vis.com"> 
+    <a class="nav-link" href="https://baseball.skill-vis.com" target="_blank"> 
 <span class="menu-text">Launch Simulator</span></a>
   </li>  
 </ul>
@@ -342,18 +342,15 @@ ul.task-list li input[type="checkbox"] {
     <h2 id="toc-title">On this page</h2>
    
   <ul>
-  <li><a href="#overview" id="toc-overview" class="nav-link active" data-scroll-target="#overview">Overview</a></li>
-  <li><a href="#turning-on-overlay" id="toc-turning-on-overlay" class="nav-link" data-scroll-target="#turning-on-overlay">Turning On Overlay</a></li>
-  <li><a href="#selecting-multiple-pitches-at-once" id="toc-selecting-multiple-pitches-at-once" class="nav-link" data-scroll-target="#selecting-multiple-pitches-at-once">Selecting Multiple Pitches at Once</a></li>
-  <li><a href="#animated-playback" id="toc-animated-playback" class="nav-link" data-scroll-target="#animated-playback">Animated Playback</a></li>
-  <li><a href="#overlay-statistics" id="toc-overlay-statistics" class="nav-link" data-scroll-target="#overlay-statistics">Overlay Statistics</a>
+  <li><a href="#the-decision-point" id="toc-the-decision-point" class="nav-link active" data-scroll-target="#the-decision-point">The Decision Point</a></li>
+  <li><a href="#what-is-a-tunnel" id="toc-what-is-a-tunnel" class="nav-link" data-scroll-target="#what-is-a-tunnel">What Is a Tunnel?</a></li>
+  <li><a href="#using-the-simulator-for-tunnel-analysis" id="toc-using-the-simulator-for-tunnel-analysis" class="nav-link" data-scroll-target="#using-the-simulator-for-tunnel-analysis">Using the Simulator for Tunnel Analysis</a>
   <ul class="collapse">
-  <li><a href="#input-parameters" id="toc-input-parameters" class="nav-link" data-scroll-target="#input-parameters">Input Parameters</a></li>
-  <li><a href="#simulation-output" id="toc-simulation-output" class="nav-link" data-scroll-target="#simulation-output">Simulation Output</a></li>
-  <li><a href="#statcast-measured" id="toc-statcast-measured" class="nav-link" data-scroll-target="#statcast-measured">Statcast Measured</a></li>
+  <li><a href="#step-by-step" id="toc-step-by-step" class="nav-link" data-scroll-target="#step-by-step">Step-by-step</a></li>
+  <li><a href="#what-to-look-for" id="toc-what-to-look-for" class="nav-link" data-scroll-target="#what-to-look-for">What to look for</a></li>
+  <li><a href="#best-tunnel-pairs-to-test" id="toc-best-tunnel-pairs-to-test" class="nav-link" data-scroll-target="#best-tunnel-pairs-to-test">Best tunnel pairs to test</a></li>
   </ul></li>
-  <li><a href="#csv-export-with-statistics" id="toc-csv-export-with-statistics" class="nav-link" data-scroll-target="#csv-export-with-statistics">CSV Export with Statistics</a></li>
-  <li><a href="#tips" id="toc-tips" class="nav-link" data-scroll-target="#tips">Tips</a></li>
+  <li><a href="#why-tunneling-works" id="toc-why-tunneling-works" class="nav-link" data-scroll-target="#why-tunneling-works">Why Tunneling Works</a></li>
   </ul>
 </nav>
     </div>
@@ -363,8 +360,8 @@ ul.task-list li input[type="checkbox"] {
 
 <header id="title-block-header" class="quarto-title-block default">
 <div class="quarto-title">
-<h1 class="title">Overlay Comparison</h1>
-<p class="subtitle lead">Stack multiple pitches to compare trajectories</p>
+<h1 class="title">Pitch Tunneling</h1>
+<p class="subtitle lead">Why the best pitch pairs look identical — until it’s too late</p>
 </div>
 
 
@@ -381,118 +378,96 @@ ul.task-list li input[type="checkbox"] {
 </header>
 
 
-<section id="overview" class="level2">
-<h2 class="anchored" data-anchor-id="overview">Overview</h2>
-<p>Overlay mode lets you simulate multiple pitches and display their trajectories simultaneously. This is the core feature for pitch comparison — tunneling analysis, pitch design evaluation, and consistency checks.</p>
+<section id="the-decision-point" class="level2">
+<h2 class="anchored" data-anchor-id="the-decision-point">The Decision Point</h2>
+<p>A 95-mph fastball reaches home plate in about <strong>400 milliseconds</strong>. But the batter must commit to swinging — or not — roughly <strong>170 ms before the ball arrives</strong>. At that moment, the ball is still about <strong>23–24 feet from the plate</strong>.</p>
+<p>This is the <strong>decision point</strong>: the last instant where the batter can change their mind.</p>
 </section>
-<section id="turning-on-overlay" class="level2">
-<h2 class="anchored" data-anchor-id="turning-on-overlay">Turning On Overlay</h2>
-<p>Check the <strong>Overlay</strong> checkbox next to the Simulate button. Once enabled:</p>
+<section id="what-is-a-tunnel" class="level2">
+<h2 class="anchored" data-anchor-id="what-is-a-tunnel">What Is a Tunnel?</h2>
+<p>A pitch tunnel exists when <strong>two different pitches occupy the same space at the decision point</strong>.</p>
+<p>If a fastball and a changeup pass through the same location 23.8 feet from home plate, traveling at a similar angle, the batter cannot tell them apart at the moment of decision. They are forced to guess.</p>
+<p>After the decision point, the two pitches diverge — the fastball stays up, the changeup drops. But by then, the batter has already committed.</p>
+<p><strong>The greater the separation at home plate, and the smaller the separation at the tunnel point, the more effective the pair.</strong></p>
+</section>
+<section id="using-the-simulator-for-tunnel-analysis" class="level2">
+<h2 class="anchored" data-anchor-id="using-the-simulator-for-tunnel-analysis">Using the Simulator for Tunnel Analysis</h2>
+<section id="step-by-step" class="level3">
+<h3 class="anchored" data-anchor-id="step-by-step">Step-by-step</h3>
+<ol type="1">
+<li><strong>Turn on Overlay mode</strong> (toggle button near Simulate)</li>
+<li><strong>Simulate a fastball</strong> (e.g., select an FF from the pitch list)</li>
+<li><strong>Simulate a changeup</strong> (select a CH from the same game)</li>
+<li><strong>Turn on Tunnel visualization</strong> (Tunnel button in the toolbar)</li>
+</ol>
+<p>You will see:</p>
 <ul>
-<li>The <strong>first</strong> pitch clears the view and draws normally</li>
-<li>Each <strong>subsequent</strong> pitch adds its trajectory on top, in a different color</li>
+<li>Two trajectory lines, color-coded by pitch type</li>
+<li>A transparent <strong>tunnel cylinder</strong> from the release point to the 23.8-ft crossing point</li>
+<li><strong>Ring markers</strong> at the tunnel point for each pitch</li>
 </ul>
-<div class="quarto-figure quarto-figure-center">
-<figure class="figure">
-<p><img src="../images/overlay.png" class="img-fluid figure-img" alt="Overlay comparison showing two pitch trajectories"></p>
-<figcaption>Two pitches overlaid — FF (orange) and ST (green) with different trajectories</figcaption>
-</figure>
-</div>
+<p><strong>If the rings overlap, the pitches tunnel well.</strong> The batter sees the same thing at the point of decision.</p>
 </section>
-<section id="selecting-multiple-pitches-at-once" class="level2">
-<h2 class="anchored" data-anchor-id="selecting-multiple-pitches-at-once">Selecting Multiple Pitches at Once</h2>
-<p>When viewing a game’s pitch list, you can select multiple pitches:</p>
+<section id="what-to-look-for" class="level3">
+<h3 class="anchored" data-anchor-id="what-to-look-for">What to look for</h3>
 <table class="caption-top table">
+<colgroup>
+<col style="width: 48%">
+<col style="width: 52%">
+</colgroup>
 <thead>
 <tr class="header">
-<th>Action</th>
-<th>Effect</th>
+<th>Good tunnel</th>
+<th>Poor tunnel</th>
 </tr>
 </thead>
 <tbody>
 <tr class="odd">
-<td><strong>Cmd/Ctrl + Click</strong></td>
-<td>Toggle individual pitches on/off</td>
+<td>Rings nearly overlap at 23.8 ft</td>
+<td>Rings are far apart</td>
 </tr>
 <tr class="even">
-<td><strong>Shift + Click</strong></td>
-<td>Select a range</td>
+<td>Pitches diverge only after the tunnel point</td>
+<td>Pitches are already separated at the tunnel point</td>
 </tr>
 <tr class="odd">
-<td><strong>“All FF (12)”</strong> button</td>
-<td>Select all pitches of a type</td>
+<td>Similar release point</td>
+<td>Different release points</td>
 </tr>
 <tr class="even">
-<td><strong>“Clear All”</strong> button</td>
-<td>Deselect everything</td>
+<td>Large separation at home plate</td>
+<td>Small separation at home plate</td>
 </tr>
 </tbody>
 </table>
-<p>When multiple pitches are selected, the Simulate button changes to <strong>“Simulate N Pitches (Overlay)”</strong>. Click it, and all selected pitches are simulated sequentially with automatic overlay.</p>
-<div class="callout callout-style-default callout-warning callout-titled">
+</section>
+<section id="best-tunnel-pairs-to-test" class="level3">
+<h3 class="anchored" data-anchor-id="best-tunnel-pairs-to-test">Best tunnel pairs to test</h3>
+<ul>
+<li><strong>FF + CH</strong> (fastball / changeup) — speed difference with similar trajectory</li>
+<li><strong>FF + FS</strong> (fastball / splitter) — similar top of zone, splitter falls late</li>
+<li><strong>FF + SL</strong> (fastball / slider) — horizontal divergence after tunnel</li>
+<li><strong>FC + CH</strong> (cutter / changeup) — similar arm action</li>
+</ul>
+<div class="callout callout-style-default callout-tip callout-titled">
 <div class="callout-header d-flex align-content-center">
 <div class="callout-icon-container">
 <i class="callout-icon"></i>
 </div>
 <div class="callout-title-container flex-fill">
-Warning
+<span class="screen-reader-only">Tip</span>Try Batter’s Eye + Tunnel
 </div>
 </div>
 <div class="callout-body-container callout-body">
-<p>Selecting more than 30 pitches triggers a confirmation dialog. Each pitch requires an API call, so large batches take time.</p>
+<p>Enable Batter’s Eye view while looking at a tunneled pair. You will see both pitches arriving from the batter’s perspective — and experience firsthand why the batter can’t distinguish them until it’s too late.</p>
 </div>
 </div>
 </section>
-<section id="animated-playback" class="level2">
-<h2 class="anchored" data-anchor-id="animated-playback">Animated Playback</h2>
-<p>When overlaying multiple pitches:</p>
-<ul>
-<li>Up to <strong>3 balls</strong> animate simultaneously during playback</li>
-<li>Each ball is a <strong>textured baseball</strong> rotating at its real angular velocity</li>
-<li>Balls are <strong>time-synchronized</strong> — a 155 km/h fastball arrives at home plate before a 130 km/h curveball</li>
-<li>After the fastest ball arrives, playback continues until the slowest ball reaches home plate</li>
-<li><strong>Frame stepping</strong> (← → keys) covers the full time range including slower overlay balls</li>
-</ul>
 </section>
-<section id="overlay-statistics" class="level2">
-<h2 class="anchored" data-anchor-id="overlay-statistics">Overlay Statistics</h2>
-<p>After overlaying 2 or more pitches, the <strong>Overlay Statistics</strong> panel appears in the left panel (scroll down). It shows:</p>
-<section id="input-parameters" class="level3">
-<h3 class="anchored" data-anchor-id="input-parameters">Input Parameters</h3>
-<ul>
-<li>Speed, release position, angles, BSG spin components, angular velocity (ωx, ωy, ωz), |ω|, component ratios</li>
-</ul>
-</section>
-<section id="simulation-output" class="level3">
-<h3 class="anchored" data-anchor-id="simulation-output">Simulation Output</h3>
-<ul>
-<li>Home plate crossing, spin movement, Statcast comparison, tunnel point</li>
-</ul>
-</section>
-<section id="statcast-measured" class="level3">
-<h3 class="anchored" data-anchor-id="statcast-measured">Statcast Measured</h3>
-<ul>
-<li>SC Move Horiz/Vert (cm) — the actual Statcast-measured spin movement (pfx)</li>
-</ul>
-<p>All values show <strong>Mean ± σ, Min, Max</strong>. The section is collapsible.</p>
-</section>
-</section>
-<section id="csv-export-with-statistics" class="level2">
-<h2 class="anchored" data-anchor-id="csv-export-with-statistics">CSV Export with Statistics</h2>
-<p>When you click <strong>CSV Export</strong> with overlay data:</p>
-<ul>
-<li>The summary CSV includes one column per pitch, plus <strong>Statistics rows</strong> (mean, std, min, max) at the bottom</li>
-<li>The trajectory CSV includes all pitches side by side</li>
-</ul>
-</section>
-<section id="tips" class="level2">
-<h2 class="anchored" data-anchor-id="tips">Tips</h2>
-<ul>
-<li><strong>Overlay FF + ST</strong> to evaluate fastball-sweeper tunneling</li>
-<li><strong>Overlay all FF in a game</strong> to check fastball consistency (look at standard deviation)</li>
-<li>Use <strong>Batter’s Eye</strong> view with overlay to see the pitches from the hitter’s perspective</li>
-<li>The <strong>Tunnel</strong> button shows the 23.8-ft tunnel cylinder for each pitch</li>
-</ul>
+<section id="why-tunneling-works" class="level2">
+<h2 class="anchored" data-anchor-id="why-tunneling-works">Why Tunneling Works</h2>
+<p>The human visual system needs time to process changes in trajectory. Research suggests that batters track the ball’s position and velocity, then extrapolate forward. If two pitches have the same position and direction at the decision point, the batter’s brain generates the same prediction for both — even though they will end up in different locations.</p>
+<p>Effective tunneling is not just about having a good fastball or a good changeup. It’s about <strong>how well they pair together</strong> — and that’s exactly what the simulator lets you evaluate.</p>
 
 
 </section>
