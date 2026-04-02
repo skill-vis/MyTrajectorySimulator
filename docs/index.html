@@ -351,6 +351,7 @@ ul.task-list li input[type="checkbox"] {
   <li><a href="#key-features" id="toc-key-features" class="nav-link" data-scroll-target="#key-features">Key Features</a></li>
   <li><a href="#pitch-types-at-a-glance" id="toc-pitch-types-at-a-glance" class="nav-link" data-scroll-target="#pitch-types-at-a-glance">Pitch Types at a Glance</a></li>
   <li><a href="#how-the-physics-works" id="toc-how-the-physics-works" class="nav-link" data-scroll-target="#how-the-physics-works">How the Physics Works</a></li>
+  <li><a href="#api-access" id="toc-api-access" class="nav-link" data-scroll-target="#api-access">API Access</a></li>
   <li><a href="#credits" id="toc-credits" class="nav-link" data-scroll-target="#credits">Credits</a></li>
   </ul>
 </nav>
@@ -391,7 +392,7 @@ ul.task-list li input[type="checkbox"] {
 </div>
 <section id="what-it-does" class="level2">
 <h2 class="anchored" data-anchor-id="what-it-does">What It Does</h2>
-<p>You type a pitcher’s name. The simulator pulls their actual pitch data from MLB Statcast — every four-seam fastball, slider, curveball, and changeup they threw. Data is available from <strong>2016 to the current season</strong> (default: 2025). Pick any pitch, hit Simulate, and watch the ball travel from the pitcher’s hand to home plate in 3D.</p>
+<p>You type a pitcher’s name. The simulator pulls their actual pitch data from MLB Statcast — every four-seam fastball, slider, curveball, and changeup they threw. Data is available from <strong>2016 to the current season</strong>. Pick any pitch, hit Simulate, and watch the ball travel from the pitcher’s hand to home plate in 3D.</p>
 <p>The trajectory is not an animation based on video. It is a <strong>physics simulation</strong>. The ball’s path is computed from its release speed, spin rate, and spin axis using the same aerodynamic model developed by <a href="https://baseball.physics.illinois.edu/">Prof.&nbsp;Alan Nathan</a> at the University of Illinois — the standard reference for baseball trajectory research.</p>
 </section>
 <section id="why-it-matters" class="level2">
@@ -403,7 +404,7 @@ ul.task-list li input[type="checkbox"] {
 </section>
 <section id="for-analysts" class="level3 feature-card">
 <h3 class="anchored" data-anchor-id="for-analysts">For Analysts</h3>
-<p>Compare spin decomposition (backspin, sidespin, gyrospin) across pitchers. Export full trajectory data — position, velocity, acceleration, and force components — to CSV for further analysis.</p>
+<p>Compare spin decomposition (backspin, sidespin, gyrospin) across pitchers. Get season-wide summaries with spin efficiency and BSG breakdown via the API. Export full trajectory data to CSV.</p>
 </section>
 <section id="for-player-development" class="level3 feature-card">
 <h3 class="anchored" data-anchor-id="for-player-development">For Player Development</h3>
@@ -414,10 +415,6 @@ ul.task-list li input[type="checkbox"] {
 <section id="key-features" class="level2">
 <h2 class="anchored" data-anchor-id="key-features">Key Features</h2>
 <table class="caption-top table">
-<colgroup>
-<col style="width: 40%">
-<col style="width: 59%">
-</colgroup>
 <thead>
 <tr class="header">
 <th>Feature</th>
@@ -430,32 +427,48 @@ ul.task-list li input[type="checkbox"] {
 <td>Search any pitcher, browse their game-by-game pitch data, simulate any individual pitch</td>
 </tr>
 <tr class="even">
+<td><strong>Season Summary API</strong></td>
+<td>Per pitch-type averages (speed, spin, movement, BSG, spin efficiency) and monthly trends in a single request</td>
+</tr>
+<tr class="odd">
 <td><strong>Multiple Input Modes</strong></td>
 <td>Statcast data, manual sliders, or Rapsodo measurements</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td><strong>Overlay Comparison</strong></td>
 <td>Stack multiple pitches to compare trajectories side by side</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td><strong>Batter’s Eye View</strong></td>
 <td>First-person camera from the batter’s box — see what the hitter sees</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td><strong>Pitch Tunnel</strong></td>
 <td>Visualize the tunnel point (23.8 ft) where the batter must decide</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td><strong>Spin Axis on the Ball</strong></td>
 <td>Animated baseball with procedural seam texture, rotating at real angular velocity</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td><strong>CSV Import / Export</strong></td>
 <td>Full trajectory data with velocity, acceleration, and force breakdown</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td><strong>Video Recording</strong></td>
 <td>Export the 3D view as MP4</td>
+</tr>
+<tr class="even">
+<td><strong>Shareable Links</strong></td>
+<td>Each simulation generates a URL that recreates the exact same pitch in a browser</td>
+</tr>
+<tr class="odd">
+<td><strong>Claude Desktop (MCP)</strong></td>
+<td>Query Statcast data and run simulations using natural language from Claude Desktop. <a href="https://github.com/skill-vis/baseball-mcp-server">Setup guide</a></td>
+</tr>
+<tr class="even">
+<td><strong>Adjustable C<sub>L</sub> Model</strong></td>
+<td>Choose between Statcast-fitted (cl2=1.045) or Nathan original (cl2=1.12) lift coefficients</td>
 </tr>
 </tbody>
 </table>
@@ -483,18 +496,60 @@ ul.task-list li input[type="checkbox"] {
 <ul>
 <li><strong>Drag force</strong> slows the ball down (opposing its velocity)</li>
 <li><strong>Magnus force</strong> pushes the ball sideways and/or upward, perpendicular to both the spin axis and the velocity</li>
-<li><strong>Gravity</strong> pulls the ball down</li>
+<li><strong>Gravity</strong> pulls the ball down (g = 9.80 m/s², MLB stadium average)</li>
 </ul>
-<p>The spin is decomposed into three components:</p>
+<p>The spin is decomposed into three orthonormal components:</p>
 <ul>
-<li><strong>Backspin</strong> — creates “rise” (resists gravity). A four-seamer with 2200 rpm backspin drops about 40 cm less than a ball with no spin.</li>
-<li><strong>Sidespin</strong> — creates horizontal movement. A slider’s lateral break comes from sidespin.</li>
-<li><strong>Gyrospin</strong> — spin around the direction of travel (like a bullet). Does <strong>not</strong> create movement. A pitch with high gyrospin and low backspin/sidespin will have less movement despite high total spin rate.</li>
+<li><strong>Backspin</strong> — rotation around the axis perpendicular to velocity in the horizontal plane. Creates “rise” (resists gravity). A four-seamer with 2200 rpm backspin drops about 40 cm less than a ball with no spin.</li>
+<li><strong>Sidespin</strong> — rotation around the axis perpendicular to both the velocity and the backspin axis. Creates horizontal movement.</li>
+<li><strong>Gyrospin</strong> — spin around the velocity direction (like a bullet). Does <strong>not</strong> create Magnus force. A pitch with high gyrospin and low backspin/sidespin will have less movement despite high total spin rate.</li>
 </ul>
-<p>The simulation uses 4th-order Runge-Kutta integration with 0.001-second time steps, matching the accuracy of Nathan’s original trajectory calculator.</p>
+<p>The BSG basis is orthonormal: <strong>e<sub>b</sub></strong> = <strong>e<sub>g</sub></strong> × <strong>e<sub>Z</sub></strong> (horizontal), <strong>e<sub>s</sub></strong> = <strong>e<sub>b</sub></strong> × <strong>e<sub>g</sub></strong>, where <strong>e<sub>g</sub></strong> is the velocity direction and <strong>e<sub>Z</sub></strong> is vertical. This ensures clean decomposition with no leakage between components.</p>
+<p>Ball parameters match Nathan’s Excel Trajectory Calculator: mass = 5.125 oz, circumference = 9.125 in.</p>
+<p>The simulation uses 4th-order Runge-Kutta integration with 0.001-second time steps.</p>
 </div>
 </div>
 </div>
+</section>
+<section id="api-access" class="level2">
+<h2 class="anchored" data-anchor-id="api-access">API Access</h2>
+<p>The simulator exposes a public REST API. Key endpoints:</p>
+<table class="caption-top table">
+<colgroup>
+<col style="width: 43%">
+<col style="width: 56%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>Endpoint</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>POST /statcast/search</code></td>
+<td>Search for a pitcher by name</td>
+</tr>
+<tr class="even">
+<td><code>POST /statcast/games</code></td>
+<td>Get game dates for a pitcher/year</td>
+</tr>
+<tr class="odd">
+<td><code>POST /statcast/pitches</code></td>
+<td>Get all pitches for a game date</td>
+</tr>
+<tr class="even">
+<td><code>POST /statcast/simulate</code></td>
+<td>Run trajectory simulation</td>
+</tr>
+<tr class="odd">
+<td><code>POST /statcast/season_summary</code></td>
+<td>Season-wide pitch-type summary with BSG and monthly trends</td>
+</tr>
+</tbody>
+</table>
+<p>No API key required. Base URL: <code>https://baseball.skill-vis.com</code></p>
+<p>For natural language access via Claude Desktop, see the <a href="https://github.com/skill-vis/baseball-mcp-server">MCP Server setup guide</a>.</p>
 </section>
 <section id="credits" class="level2">
 <h2 class="anchored" data-anchor-id="credits">Credits</h2>
@@ -502,6 +557,7 @@ ul.task-list li input[type="checkbox"] {
 <li>Physics model: <a href="https://baseball.physics.illinois.edu/">Alan Nathan’s Trajectory Calculator</a></li>
 <li>Pitch data: <a href="https://baseballsavant.mlb.com/">MLB Statcast</a> via Hawk-Eye tracking</li>
 <li>Baseball seam curve: <a href="https://mathcurve.com/courbes3d.gb/couture/couture.shtml">mathcurve.com</a> parametrization</li>
+<li>C<sub>L</sub> model calibration: Fitted against 120 pitches from 6 MLB pitchers (2025 season)</li>
 </ul>
 
 

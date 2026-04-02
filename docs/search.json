@@ -228,21 +228,21 @@
     "href": "index.html#what-it-does",
     "title": "Baseball Pitch Trajectory Simulator",
     "section": "What It Does",
-    "text": "What It Does\nYou type a pitcher’s name. The simulator pulls their actual pitch data from MLB Statcast — every four-seam fastball, slider, curveball, and changeup they threw. Data is available from 2016 to the current season (default: 2025). Pick any pitch, hit Simulate, and watch the ball travel from the pitcher’s hand to home plate in 3D.\nThe trajectory is not an animation based on video. It is a physics simulation. The ball’s path is computed from its release speed, spin rate, and spin axis using the same aerodynamic model developed by Prof. Alan Nathan at the University of Illinois — the standard reference for baseball trajectory research."
+    "text": "What It Does\nYou type a pitcher’s name. The simulator pulls their actual pitch data from MLB Statcast — every four-seam fastball, slider, curveball, and changeup they threw. Data is available from 2016 to the current season. Pick any pitch, hit Simulate, and watch the ball travel from the pitcher’s hand to home plate in 3D.\nThe trajectory is not an animation based on video. It is a physics simulation. The ball’s path is computed from its release speed, spin rate, and spin axis using the same aerodynamic model developed by Prof. Alan Nathan at the University of Illinois — the standard reference for baseball trajectory research."
   },
   {
     "objectID": "index.html#why-it-matters",
     "href": "index.html#why-it-matters",
     "title": "Baseball Pitch Trajectory Simulator",
     "section": "Why It Matters",
-    "text": "Why It Matters\n\n\nFor Pitching Coaches\nOverlay a pitcher’s fastball and changeup to see if they tunnel effectively. See exactly where and when the two trajectories diverge.\n\n\nFor Analysts\nCompare spin decomposition (backspin, sidespin, gyrospin) across pitchers. Export full trajectory data — position, velocity, acceleration, and force components — to CSV for further analysis.\n\n\nFor Player Development\nEnter Rapsodo measurements directly and simulate the resulting trajectory. Test “what if” scenarios by adjusting spin rate or axis."
+    "text": "Why It Matters\n\n\nFor Pitching Coaches\nOverlay a pitcher’s fastball and changeup to see if they tunnel effectively. See exactly where and when the two trajectories diverge.\n\n\nFor Analysts\nCompare spin decomposition (backspin, sidespin, gyrospin) across pitchers. Get season-wide summaries with spin efficiency and BSG breakdown via the API. Export full trajectory data to CSV.\n\n\nFor Player Development\nEnter Rapsodo measurements directly and simulate the resulting trajectory. Test “what if” scenarios by adjusting spin rate or axis."
   },
   {
     "objectID": "index.html#key-features",
     "href": "index.html#key-features",
     "title": "Baseball Pitch Trajectory Simulator",
     "section": "Key Features",
-    "text": "Key Features\n\n\n\n\n\n\n\nFeature\nDescription\n\n\n\n\nMLB Statcast Integration\nSearch any pitcher, browse their game-by-game pitch data, simulate any individual pitch\n\n\nMultiple Input Modes\nStatcast data, manual sliders, or Rapsodo measurements\n\n\nOverlay Comparison\nStack multiple pitches to compare trajectories side by side\n\n\nBatter’s Eye View\nFirst-person camera from the batter’s box — see what the hitter sees\n\n\nPitch Tunnel\nVisualize the tunnel point (23.8 ft) where the batter must decide\n\n\nSpin Axis on the Ball\nAnimated baseball with procedural seam texture, rotating at real angular velocity\n\n\nCSV Import / Export\nFull trajectory data with velocity, acceleration, and force breakdown\n\n\nVideo Recording\nExport the 3D view as MP4"
+    "text": "Key Features\n\n\n\nFeature\nDescription\n\n\n\n\nMLB Statcast Integration\nSearch any pitcher, browse their game-by-game pitch data, simulate any individual pitch\n\n\nSeason Summary API\nPer pitch-type averages (speed, spin, movement, BSG, spin efficiency) and monthly trends in a single request\n\n\nMultiple Input Modes\nStatcast data, manual sliders, or Rapsodo measurements\n\n\nOverlay Comparison\nStack multiple pitches to compare trajectories side by side\n\n\nBatter’s Eye View\nFirst-person camera from the batter’s box — see what the hitter sees\n\n\nPitch Tunnel\nVisualize the tunnel point (23.8 ft) where the batter must decide\n\n\nSpin Axis on the Ball\nAnimated baseball with procedural seam texture, rotating at real angular velocity\n\n\nCSV Import / Export\nFull trajectory data with velocity, acceleration, and force breakdown\n\n\nVideo Recording\nExport the 3D view as MP4\n\n\nShareable Links\nEach simulation generates a URL that recreates the exact same pitch in a browser\n\n\nClaude Desktop (MCP)\nQuery Statcast data and run simulations using natural language from Claude Desktop. Setup guide\n\n\nAdjustable CL Model\nChoose between Statcast-fitted (cl2=1.045) or Nathan original (cl2=1.12) lift coefficients"
   },
   {
     "objectID": "index.html#pitch-types-at-a-glance",
@@ -256,14 +256,21 @@
     "href": "index.html#how-the-physics-works",
     "title": "Baseball Pitch Trajectory Simulator",
     "section": "How the Physics Works",
-    "text": "How the Physics Works\n\n\n\n\n\n\nNoteFor the curious (optional)\n\n\n\n\n\nThe simulator solves the equations of motion for a spinning ball in air:\n\nDrag force slows the ball down (opposing its velocity)\nMagnus force pushes the ball sideways and/or upward, perpendicular to both the spin axis and the velocity\nGravity pulls the ball down\n\nThe spin is decomposed into three components:\n\nBackspin — creates “rise” (resists gravity). A four-seamer with 2200 rpm backspin drops about 40 cm less than a ball with no spin.\nSidespin — creates horizontal movement. A slider’s lateral break comes from sidespin.\nGyrospin — spin around the direction of travel (like a bullet). Does not create movement. A pitch with high gyrospin and low backspin/sidespin will have less movement despite high total spin rate.\n\nThe simulation uses 4th-order Runge-Kutta integration with 0.001-second time steps, matching the accuracy of Nathan’s original trajectory calculator."
+    "text": "How the Physics Works\n\n\n\n\n\n\nNoteFor the curious (optional)\n\n\n\n\n\nThe simulator solves the equations of motion for a spinning ball in air:\n\nDrag force slows the ball down (opposing its velocity)\nMagnus force pushes the ball sideways and/or upward, perpendicular to both the spin axis and the velocity\nGravity pulls the ball down (g = 9.80 m/s², MLB stadium average)\n\nThe spin is decomposed into three orthonormal components:\n\nBackspin — rotation around the axis perpendicular to velocity in the horizontal plane. Creates “rise” (resists gravity). A four-seamer with 2200 rpm backspin drops about 40 cm less than a ball with no spin.\nSidespin — rotation around the axis perpendicular to both the velocity and the backspin axis. Creates horizontal movement.\nGyrospin — spin around the velocity direction (like a bullet). Does not create Magnus force. A pitch with high gyrospin and low backspin/sidespin will have less movement despite high total spin rate.\n\nThe BSG basis is orthonormal: eb = eg × eZ (horizontal), es = eb × eg, where eg is the velocity direction and eZ is vertical. This ensures clean decomposition with no leakage between components.\nBall parameters match Nathan’s Excel Trajectory Calculator: mass = 5.125 oz, circumference = 9.125 in.\nThe simulation uses 4th-order Runge-Kutta integration with 0.001-second time steps."
+  },
+  {
+    "objectID": "index.html#api-access",
+    "href": "index.html#api-access",
+    "title": "Baseball Pitch Trajectory Simulator",
+    "section": "API Access",
+    "text": "API Access\nThe simulator exposes a public REST API. Key endpoints:\n\n\n\n\n\n\n\nEndpoint\nDescription\n\n\n\n\nPOST /statcast/search\nSearch for a pitcher by name\n\n\nPOST /statcast/games\nGet game dates for a pitcher/year\n\n\nPOST /statcast/pitches\nGet all pitches for a game date\n\n\nPOST /statcast/simulate\nRun trajectory simulation\n\n\nPOST /statcast/season_summary\nSeason-wide pitch-type summary with BSG and monthly trends\n\n\n\nNo API key required. Base URL: https://baseball.skill-vis.com\nFor natural language access via Claude Desktop, see the MCP Server setup guide."
   },
   {
     "objectID": "index.html#credits",
     "href": "index.html#credits",
     "title": "Baseball Pitch Trajectory Simulator",
     "section": "Credits",
-    "text": "Credits\n\nPhysics model: Alan Nathan’s Trajectory Calculator\nPitch data: MLB Statcast via Hawk-Eye tracking\nBaseball seam curve: mathcurve.com parametrization"
+    "text": "Credits\n\nPhysics model: Alan Nathan’s Trajectory Calculator\nPitch data: MLB Statcast via Hawk-Eye tracking\nBaseball seam curve: mathcurve.com parametrization\nCL model calibration: Fitted against 120 pitches from 6 MLB pitchers (2025 season)"
   },
   {
     "objectID": "getting-started.html",
