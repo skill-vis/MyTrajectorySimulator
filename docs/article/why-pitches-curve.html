@@ -517,8 +517,8 @@ $$C_D = c_{d0} + c_{d,\text{spin}} \cdot \frac{\omega_{\text{total}}}{1000}$$
             Math.cos(tiltRad) * Math.cos(yawRad) * 0.3  // small Z component
         ).normalize();
 
-        // Force = ω × v
-        const force = new THREE.Vector3().crossVectors(omega, vDir).normalize();
+        // Force = v × ω (in Three.js coords, sign-corrected)
+        const force = new THREE.Vector3().crossVectors(vDir, omega).normalize();
 
         // Remove old arrows
         if (omegaArrow) scene.remove(omegaArrow);
@@ -651,22 +651,23 @@ $$C_D = c_{d0} + c_{d,\text{spin}} \cdot \frac{\omega_{\text{total}}}{1000}$$
     scene.add(homePlate);
     makeTextSprite('ホーム', new THREE.Vector3(0, 0.3, -3.5), '#888888');
 
-    // --- Velocity arrow (green dashed, from ball position toward catcher = -Z) ---
+    // --- Velocity arrow (green dashed, from ball toward catcher = -Z, half length) ---
     const vStart = new THREE.Vector3(0, 0.8, 0);
-    const vEnd = new THREE.Vector3(0, 0.8, -2.5);
+    const vEnd = new THREE.Vector3(0, 0.8, -1.2);
     const vLineGeo = new THREE.BufferGeometry().setFromPoints([vStart, vEnd]);
-    const vLineMat = new THREE.LineDashedMaterial({color: 0x44ff44, dashSize: 0.15, gapSize: 0.08, linewidth: 1});
+    const vLineMat = new THREE.LineDashedMaterial({color: 0x44ff44, dashSize: 0.12, gapSize: 0.06, linewidth: 1});
     const vLine = new THREE.Line(vLineGeo, vLineMat);
     vLine.computeLineDistances();
     scene.add(vLine);
-    // Arrowhead cone at the end (pointing -Z direction)
-    const vConeGeo = new THREE.ConeGeometry(0.06, 0.18, 8);
+    // Arrowhead cone pointing -Z (rotate cone from +Y default to -Z)
+    const vConeGeo = new THREE.ConeGeometry(0.05, 0.15, 8);
     const vConeMat = new THREE.MeshBasicMaterial({color: 0x44ff44});
     const vCone = new THREE.Mesh(vConeGeo, vConeMat);
     vCone.position.copy(vEnd);
-    vCone.rotation.x = Math.PI / 2;  // Cone default points +Y, rotate to point -Z
+    // Cone default: +Y. To point -Z: rotate +90° around X axis
+    vCone.quaternion.setFromUnitVectors(new THREE.Vector3(0,1,0), new THREE.Vector3(0,0,-1));
     scene.add(vCone);
-    makeTextSprite('v (速度)', new THREE.Vector3(0.4, 1.1, -1.0), '#44ff44', 22);
+    makeTextSprite('v (速度)', new THREE.Vector3(0.35, 1.05, -0.6), '#44ff44', 22);
 
     // --- Baseball with seam-like texture ---
     const ballRadius = 0.18;
@@ -777,9 +778,13 @@ $$C_D = c_{d0} + c_{d,\text{spin}} \cdot \frac{\omega_{\text{total}}}{1000}$$
     }
 
     function addForceArrow(omegaDir, ballCenter) {
-        // F = ω × v, velocity = (0, 0, -1) in Three.js
+        // Magnus: F ∝ ω × v. In Three.js, v = (0, 0, -1)
+        // For backspin (ω pointing +X in Three.js), F should be +Y (upward)
+        // ω×v = (ωx,ωy,ωz)×(0,0,-1) = (ωy×(-1)-ωz×0, ωz×0-ωx×(-1), ωx×0-ωy×0) = (-ωy, ωx, 0)
+        // Backspin: ωx>0 → Fy=ωx>0 → upward ✓
+        // So crossVectors(omega, v) is correct sign
         const vDir = new THREE.Vector3(0, 0, -1);
-        const fDir = new THREE.Vector3().crossVectors(omegaDir, vDir);
+        const fDir = new THREE.Vector3().crossVectors(vDir, omegaDir);
         if (fDir.length() < 0.001) return;
         fDir.normalize();
 
@@ -807,7 +812,7 @@ $$C_D = c_{d0} + c_{d,\text{spin}} \cdot \frac{\omega_{\text{total}}}{1000}$$
 
         // Label
         const labelPos = ballCenter.clone().add(fDir.clone().multiplyScalar(fLen + ballRadius + 0.2));
-        const label = makeTextSprite('F', labelPos, '#4fc3f7', 24);
+        const label = makeTextSprite('マグヌス力', labelPos, '#4fc3f7', 20);
         forceObjs.push(label);
     }
 
@@ -818,7 +823,7 @@ $$C_D = c_{d0} + c_{d,\text{spin}} \cdot \frac{\omega_{\text{total}}}{1000}$$
         const omegaVec = new THREE.Vector3(d.wx * scale, d.wz * scale, d.wy * scale);
         const omegaNorm = omegaVec.clone().normalize();
         const vDir = new THREE.Vector3(0, 0, -1);
-        const fDir = new THREE.Vector3().crossVectors(omegaNorm, vDir);
+        const fDir = new THREE.Vector3().crossVectors(vDir, omegaNorm);
         if (fDir.length() < 0.001) return;
         fDir.normalize();
 
