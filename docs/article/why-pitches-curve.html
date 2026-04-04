@@ -1,0 +1,409 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>なぜ変化球は曲がるのか — 角速度ベクトルで理解するボールの変化</title>
+<meta name="description" content="ストレートを含む全ての投球がなぜ曲がるのか、角速度ベクトルとマグヌス効果で解説。インタラクティブ3D可視化付き。">
+<meta property="og:title" content="なぜ変化球は曲がるのか">
+<meta property="og:description" content="角速度ベクトルで理解するボールの変化。インタラクティブ3D可視化付き。">
+<meta property="og:image" content="https://baseball.skill-vis.com/static/ogp.png">
+<meta property="og:url" content="https://skill-vis.github.io/MyTrajectorySimulator/article/why-pitches-curve.html">
+<style>
+:root {
+    --bg: #0a0a1a;
+    --text: #e0e0e0;
+    --accent: #4fc3f7;
+    --accent2: #ff8a65;
+    --section-bg: #12122a;
+    --code-bg: #1a1a3a;
+    --border: #333;
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+    font-family: 'Hiragino Sans', 'Yu Gothic', 'Noto Sans JP', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.9;
+    font-size: 16px;
+}
+.container {
+    max-width: 820px;
+    margin: 0 auto;
+    padding: 20px 24px;
+}
+h1 {
+    font-size: 2em;
+    color: #fff;
+    margin: 40px 0 10px;
+    line-height: 1.4;
+}
+.subtitle {
+    font-size: 1.1em;
+    color: #888;
+    margin-bottom: 40px;
+}
+h2 {
+    font-size: 1.5em;
+    color: var(--accent);
+    margin: 50px 0 15px;
+    padding-bottom: 8px;
+    border-bottom: 2px solid var(--accent);
+}
+h3 {
+    font-size: 1.2em;
+    color: var(--accent2);
+    margin: 30px 0 10px;
+}
+p {
+    margin: 12px 0;
+    text-align: justify;
+}
+.highlight {
+    background: var(--section-bg);
+    border-left: 4px solid var(--accent);
+    padding: 16px 20px;
+    margin: 20px 0;
+    border-radius: 0 8px 8px 0;
+}
+.highlight.orange {
+    border-left-color: var(--accent2);
+}
+.math-box {
+    background: var(--code-bg);
+    border: 1px solid var(--border);
+    padding: 16px 20px;
+    margin: 20px 0;
+    border-radius: 8px;
+    font-family: 'Times New Roman', serif;
+    font-size: 1.1em;
+    text-align: center;
+    color: #ccc;
+}
+details {
+    background: var(--code-bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    margin: 20px 0;
+    padding: 0;
+}
+details summary {
+    padding: 12px 20px;
+    cursor: pointer;
+    color: #999;
+    font-size: 0.9em;
+}
+details summary:hover { color: var(--accent); }
+details > div {
+    padding: 0 20px 16px;
+    font-size: 0.95em;
+    color: #aaa;
+}
+.interactive-frame {
+    width: 100%;
+    height: 500px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    margin: 20px 0;
+    background: #000;
+}
+.sim-link {
+    display: inline-block;
+    background: var(--accent);
+    color: #000;
+    padding: 8px 20px;
+    border-radius: 6px;
+    text-decoration: none;
+    font-weight: bold;
+    margin: 10px 4px;
+    font-size: 0.9em;
+}
+.sim-link:hover { opacity: 0.85; }
+.sim-link.orange { background: var(--accent2); }
+figure {
+    margin: 24px 0;
+    text-align: center;
+}
+figcaption {
+    color: #888;
+    font-size: 0.85em;
+    margin-top: 8px;
+}
+.toc {
+    background: var(--section-bg);
+    border-radius: 8px;
+    padding: 20px 24px;
+    margin: 30px 0;
+}
+.toc h3 { margin-top: 0; color: #ccc; }
+.toc ul { padding-left: 20px; }
+.toc li { margin: 6px 0; }
+.toc a { color: var(--accent); text-decoration: none; }
+.toc a:hover { text-decoration: underline; }
+.vector-arrow { color: var(--accent2); font-weight: bold; }
+.footer {
+    margin-top: 60px;
+    padding: 20px 0;
+    border-top: 1px solid var(--border);
+    color: #666;
+    font-size: 0.85em;
+    text-align: center;
+}
+.footer a { color: #888; }
+canvas { border-radius: 8px; }
+</style>
+<!-- MathJax for equations -->
+<script>
+MathJax = { tex: { inlineMath: [['$', '$']], displayMath: [['$$', '$$']] } };
+</script>
+<script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js" async></script>
+</head>
+<body>
+<div class="container">
+
+<h1>なぜ変化球は曲がるのか</h1>
+<p class="subtitle">角速度ベクトルで理解するボールの変化</p>
+
+<!-- ========== 序章 ========== -->
+<div class="highlight">
+<strong>「ストレートは最高の変化球である」</strong>（溝田武人 教授）<br>
+全ての投球は「変化」している。重力だけで飛ぶボールに比べ、回転するボールは大きく軌道を変える。ストレートも例外ではない。
+</div>
+
+<p>投手が投げるボールは、重力に引かれて放物線を描いて落下する。しかし実際のピッチングでは、ボールはまっすぐ飛ぶように見えたり、鋭く曲がったりする。なぜだろうか？</p>
+
+<p>その答えは<strong>回転</strong>にある。回転するボールには、空気との相互作用で<strong>マグヌス力</strong>と呼ばれる力が働き、ボールの軌道を曲げる。ストレートも2000回転以上のバックスピンで重力に抗い、「落ちにくい」軌道を実現している。つまり、ストレートもまた「変化球」なのだ。</p>
+
+<p>この記事では、回転を<strong>角速度ベクトル（矢印）</strong>で表現し、各球種がなぜそのように曲がるのかを、3Dの可視化を交えて解説する。</p>
+
+<nav class="toc">
+<h3>目次</h3>
+<ul>
+<li><a href="#ch1">第1章: ボールに作用する力</a></li>
+<li><a href="#ch2">第2章: 回転を矢印（ベクトル）で理解する</a></li>
+<li><a href="#ch3">第3章: 各球種のωベクトル — なぜそう曲がるのか</a></li>
+<li><a href="#ch4">第4章: ω空間で見る球種マップ</a></li>
+<li><a href="#appendix">補足: 研究者向け</a></li>
+</ul>
+</nav>
+
+<!-- ========== 第1章 ========== -->
+<h2 id="ch1">第1章: ボールに作用する力</h2>
+
+<p>飛行中の野球ボールには、主に3つの力が作用する。</p>
+
+<h3>1-1. 重力 — ボールを下に引く力</h3>
+
+<p>全ての物体に作用する下向きの力。95 mph（約153 km/h）のストレートでも、投手のリリースからホームプレートまでの約0.4秒間に、重力だけで<strong>約80 cm</strong>も落下する。</p>
+
+<p>もし回転が全くなければ、ボールは放物線を描いて落ちるだけだ。次のシミュレーションで、回転なし（水色の破線）と実際の投球（オレンジ）の軌道を比較してみよう。</p>
+
+<a href="https://baseball.skill-vis.com/?mlbam_id=660271&year=2025&date=2025-06-28&pitch=0" target="_blank" class="sim-link">🔵 大谷のストレートを3Dで見る</a>
+
+<div class="highlight">
+<strong>ポイント:</strong> 水色の破線（スピンなし）とオレンジの実線（スピンあり）の差が、回転によって生まれる「変化」の大きさ。ストレートでさえ、40 cm 以上の変化量がある。
+</div>
+
+<h3>1-2. 空気抵抗（抗力）— ボールを減速させる力</h3>
+
+<p>空気中を進むボールは、空気との摩擦で減速する。95 mph でリリースされたボールは、ホームプレートに到達するまでに <strong>約10%</strong> 減速し、86 mph 程度になる。</p>
+
+<p>抗力はボールの進行方向と反対向きに作用し、速度の2乗に比例する。つまり、速いボールほど大きな空気抵抗を受ける。</p>
+
+<h3>1-3. マグヌス力 — ボールを「曲げる」力</h3>
+
+<p>これが変化球の本質だ。回転するボールの周りでは、空気の流れが非対称になる。</p>
+
+<p>回転方向と同じ向きに空気が流れる側では、空気の速度が<strong>速く</strong>なり、圧力が<strong>低く</strong>なる。逆側では空気が<strong>遅く</strong>なり、圧力が<strong>高く</strong>なる。この圧力差がボールを低圧側に押す力 — <strong>マグヌス力</strong> — を生む。</p>
+
+<div class="highlight orange">
+<strong>マグヌス力の方向:</strong> 回転軸と進行方向の両方に<strong>直交する</strong>方向にボールが移動する。回転軸を矢印で表現すると、<strong>矢印 × 進行方向</strong>（外積）の向きに力が働く。
+</div>
+
+<p>この「回転軸と進行方向に直交する方向に曲がる」というルールが、全ての球種の変化を統一的に説明する鍵だ。</p>
+
+<details>
+<summary>📐 研究者向け: マグヌス力の数式</summary>
+<div>
+<p>マグヌス力は次のように記述される:</p>
+$$\mathbf{F}_M = \frac{1}{2} C_L \rho A v^2 \, (\hat{\boldsymbol{\omega}} \times \hat{\mathbf{v}})$$
+<p>ここで $C_L$ は揚力係数（スピンパラメータ $S = R\omega/v$ の関数）、$\rho$ は空気密度、$A$ はボールの断面積、$v$ は速度、$\hat{\boldsymbol{\omega}}$ は回転軸の単位ベクトル、$\hat{\mathbf{v}}$ は速度の単位ベクトルである。</p>
+<p>$C_L(S)$ のモデルとしては Nathan の有理関数型が広く用いられる:</p>
+$$C_L = \frac{c_2 \cdot S}{c_0 + c_1 \cdot S}$$
+<p>($c_0 = 0.583$, $c_1 = 2.333$, $c_2 = 1.045$)</p>
+</div>
+</details>
+
+<!-- ========== 第2章 ========== -->
+<h2 id="ch2">第2章: 回転を矢印（ベクトル）で理解する</h2>
+
+<h3>2-1. 角速度ベクトルとは</h3>
+
+<p>回転は<strong>角速度ベクトル</strong>（$\boldsymbol{\omega}$）で表現できる。この矢印は次の2つの情報を持つ:</p>
+
+<ul>
+<li><strong>方向</strong>: 回転軸の向き（右ねじの法則）</li>
+<li><strong>長さ</strong>: 回転の速さ（回転数, rpm）</li>
+</ul>
+
+<p>右ねじの法則とは、右手の指を回転方向に巻いたとき、親指が指す向きが矢印の方向だ。バックスピンなら矢印は1塁方向、トップスピンなら3塁方向を向く。</p>
+
+<h3>2-2. なぜ「角度」ではなく「ベクトル」なのか</h3>
+
+<p>野球界では回転を「Spin Axis」の角度（時計の文字盤の何時方向か）で表現することが多い。しかしこの表現には限界がある:</p>
+
+<div class="highlight">
+<ul>
+<li>角度は<strong>2Dの投影</strong>であり、3D的な回転軸の傾きを完全に表現できない</li>
+<li>ジャイロ成分（速度方向の回転）の情報が失われる</li>
+<li>2つの投球の回転が「どれだけ似ているか」を定量的に比較しにくい</li>
+</ul>
+</div>
+
+<p>ベクトル表現なら、<strong>方向と大きさを同時に</strong>表現でき、2つの投球の「似ている度」をベクトルの距離として計算できる。</p>
+
+<h3>2-3. 3つの成分: バックスピン・サイドスピン・ジャイロスピン</h3>
+
+<p>角速度ベクトルは、投球に対して意味のある3つの成分に分解できる:</p>
+
+<ul>
+<li><span class="vector-arrow">バックスピン (B)</span>: 速度に垂直で水平な軸周りの回転。ストレートの「ホップ」を生む</li>
+<li><span class="vector-arrow">サイドスピン (S)</span>: 速度とBの両方に垂直な軸周りの回転。横方向の変化を生む</li>
+<li><span class="vector-arrow">ジャイロスピン (G)</span>: 速度方向の回転（弾丸のような回転）。マグヌス力を<strong>生まない</strong></li>
+</ul>
+
+<p>ジャイロ成分が多いほど、同じ回転数でも実際の変化量は小さくなる。これが<strong>スピン効率</strong>（Active Spin %）の概念だ。</p>
+
+<details>
+<summary>📐 研究者向け: 正規直交BSG基底</summary>
+<div>
+<p>本シミュレータでは以下の正規直交基底を用いる:</p>
+$$\hat{\mathbf{e}}_g = \frac{\mathbf{v}}{|\mathbf{v}|}, \quad
+\hat{\mathbf{e}}_b = \frac{\hat{\mathbf{e}}_g \times \hat{\mathbf{e}}_Z}{|\hat{\mathbf{e}}_g \times \hat{\mathbf{e}}_Z|}, \quad
+\hat{\mathbf{e}}_s = \hat{\mathbf{e}}_b \times \hat{\mathbf{e}}_g$$
+<p>ここで $\hat{\mathbf{e}}_Z$ は鉛直上向き単位ベクトル。$(\hat{\mathbf{e}}_g, \hat{\mathbf{e}}_b, \hat{\mathbf{e}}_s)$ は右手系 (GBS) を成す。B &gt; 0 でホップ方向の力が発生する。</p>
+</div>
+</details>
+
+<!-- ========== 第3章 ========== -->
+<h2 id="ch3">第3章: 各球種のωベクトル — なぜそう曲がるのか</h2>
+
+<h3>3-1. ストレート（4シーム, FF）</h3>
+
+<p>ストレートの角速度ベクトルは、ほぼ水平で進行方向に垂直な方向を向いている。つまり<strong>バックスピン成分が最大</strong>だ。</p>
+
+<p>$\boldsymbol{\omega} \times \mathbf{v}$ で計算される力は<strong>上向き</strong>になる。これが重力に抗い、ボールを「浮かせる」（正確には「落ちにくくする」）効果を生む。</p>
+
+<p>大谷翔平のストレートは球速98 mph、回転数2500 rpm。スピン効率は約72%で、有効なバックスピンは約1800 rpm。これにより、スピンなしに比べて<strong>約40 cm 高い位置</strong>でホームプレートに到達する。</p>
+
+<a href="https://baseball.skill-vis.com/?mlbam_id=660271&year=2025&date=2025-06-28&pitch=0" target="_blank" class="sim-link">🔵 大谷のストレートを3Dで見る</a>
+
+<div class="highlight">
+<strong>ストレートこそ最大の変化球:</strong> バックスピンによる上向きの力で、40 cm以上の「変化」を生む。これは多くの変化球よりも大きな変化量だ。
+</div>
+
+<h3>3-2. カーブ（CU）</h3>
+
+<p>カーブの角速度ベクトルは、ストレートとほぼ<strong>逆方向</strong>（トップスピン方向）を向く。$\boldsymbol{\omega} \times \mathbf{v}$ は<strong>下向き + 横方向</strong>の力を生み、ボールが大きく落下しながら曲がる。</p>
+
+<p>球速は低い（75-80 mph）が、回転数は高く（2500-2700 rpm）、バックスピン（負の値 = トップスピン）とサイドスピンの両方が大きい。</p>
+
+<a href="https://baseball.skill-vis.com/?mlbam_id=660271&year=2025&date=2025-08-27&pitch=5" target="_blank" class="sim-link orange">🟠 大谷のカーブを3Dで見る</a>
+
+<h3>3-3. スライダー / スイーパー（SL/ST）</h3>
+
+<p>スライダーやスイーパーの角速度ベクトルは、<strong>速度方向に近い</strong>（ジャイロ成分が大きい）。しかし横向きのわずかなサイドスピン成分が鋭い横変化を生む。</p>
+
+<p>大谷の2023年のスイーパーは、pfx_x（横変化量）が最大25インチに達し、MLBでも最大級の横変化を記録した。</p>
+
+<a href="https://baseball.skill-vis.com/?mlbam_id=660271&year=2023&date=2023-03-30&pitch=25" target="_blank" class="sim-link orange">🟠 大谷のスイーパー(2023)を3Dで見る</a>
+
+<h3>3-4. シンカー（SI）</h3>
+
+<p>シンカーはストレートと似た角速度方向だが、ωの傾きがわずかに異なる。この小さな角度差が、ストレートにはない<strong>横変化（シュート成分）</strong>を生む。バックスピンもストレートより少ないため、やや沈む軌道になる。</p>
+
+<h3>3-5. フォーク / スプリット（FS）</h3>
+
+<p>フォークの特徴は<strong>回転数が少ない</strong>こと（1200-1500 rpm）。マグヌス力が弱いため、重力の影響が相対的に大きくなり、ボールが大きく落下する。</p>
+
+<p>「落ちる」のではなく、「ストレートのように浮かない」と表現する方が物理的に正確だ。スピン効率は高い（80%以上）が、絶対的なtransverse spin が少ないため変化量が小さい。</p>
+
+<h3>3-6. カッター（FC）</h3>
+
+<p>カッターはストレートとスライダーの中間的なω方向を持つ。球速はストレート並みだが、ωの傾きがわずかにスライダー寄りで、小さな横変化が加わる。</p>
+
+<p>ストレート → カッター → スライダーと、ωベクトルの方向が連続的に変化していることがわかる。球種は離散的なカテゴリではなく、<strong>ω空間上の連続的な分布</strong>だ。</p>
+
+<h3>球種の比較</h3>
+
+<p>複数の球種の軌道を重ねて比較すると、角速度の違いが軌道の違いとして表れることが直感的にわかる:</p>
+
+<a href="https://baseball.skill-vis.com/?compare=660271,2025,2025-06-28,0|660271,2025,2025-08-27,5|660271,2025,2025-06-28,10" target="_blank" class="sim-link">🔵 大谷のFF vs CU vs STを3Dで比較</a>
+
+<!-- ========== 第4章 ========== -->
+<h2 id="ch4">第4章: ω空間で見る球種マップ</h2>
+
+<p>全ての球種の角速度ベクトルを3D空間にプロットすると、球種の「地図」が見える。</p>
+
+<p>ストレートとカーブは空間の対極に位置し、スライダーはジャイロ軸に近く、シンカーはストレートの近くにある。この「地図」上の距離が、2つの投球の回転特性の近さを定量的に表している。</p>
+
+<p>角速度ベクトルの近さ（距離）は、球種分類やピッチトンネリングの分析に活用できる。</p>
+
+<!-- ========== 補足 ========== -->
+<h2 id="appendix">補足: 研究者向け</h2>
+
+<details>
+<summary>📐 運動方程式</summary>
+<div>
+<p>ボールの運動方程式:</p>
+$$m\ddot{\mathbf{x}} = -mg\hat{\mathbf{e}}_Z - \frac{1}{2}C_D \rho A v \mathbf{v} + \frac{1}{2}C_L \rho A v^2 (\hat{\boldsymbol{\omega}} \times \hat{\mathbf{v}})$$
+<p>ここで第1項は重力、第2項は抗力、第3項はマグヌス力。4次ルンゲ・クッタ法で0.001秒刻みの数値積分を行う。</p>
+</div>
+</details>
+
+<details>
+<summary>📐 抗力係数モデル</summary>
+<div>
+<p>Nathan モデルでの抗力係数:</p>
+$$C_D = c_{d0} + c_{d,\text{spin}} \cdot \frac{\omega_{\text{total}}}{1000}$$
+<p>($c_{d0} = 0.297$, $c_{d,\text{spin}} = 0.0292$)</p>
+<p>スピンが増えると抗力も増加する。これは縫い目による乱流促進効果と考えられる。</p>
+</div>
+</details>
+
+<details>
+<summary>📐 回転軸の保存</summary>
+<div>
+<p>飛行中の回転軸は基本的に保存される。マグヌス力も抗力も重心に作用するため、回転軸を変えるトルクを生まない（角運動量保存）。実測でも0.4秒程度の飛行時間では回転軸の変化は無視できる。</p>
+</div>
+</details>
+
+<details>
+<summary>📐 縫い目効果（Seam-Shifted Wake）</summary>
+<div>
+<p>マグヌス力に加え、縫い目の位置が空気の剥離点を変えることで、スピンとは無関係な追加的な力が発生する場合がある。これをSeam-Shifted Wake (SSW) と呼ぶ。低回転の2シーム系の球種で影響が大きく、高回転では縫い目効果が平均化されるため影響は小さい。</p>
+</div>
+</details>
+
+<details>
+<summary>📐 ボールのパラメータ</summary>
+<div>
+<p>本シミュレータで使用するボールのパラメータ（Nathan Excel Trajectory Calculator準拠）:</p>
+<ul>
+<li>質量: 5.125 oz = 0.14529 kg</li>
+<li>円周: 9.125 in → 半径: 0.03689 m</li>
+<li>重力加速度: 9.80 m/s²（MLB球場平均）</li>
+</ul>
+</div>
+</details>
+
+<!-- ========== フッター ========== -->
+<div class="footer">
+<p>投球軌道シミュレータ: <a href="https://baseball.skill-vis.com" target="_blank">baseball.skill-vis.com</a></p>
+<p>物理モデル: <a href="https://baseball.physics.illinois.edu/" target="_blank">Alan Nathan's Trajectory Calculator</a></p>
+<p>© 2026 <a href="https://skill-vis.com" target="_blank">Skill-Vis</a></p>
+</div>
+
+</div>
+</body>
+</html>
