@@ -766,17 +766,122 @@ $$C_D = c_{d0} + c_{d,\text{spin}} \cdot \frac{\omega_{\text{total}}}{1000}$$
         return {dir, len, data: d};
     }
 
+    // Force arrow and trajectory objects (persistent between updates)
+    let forceObjs = [];
+    let trajLine = null;
+
+    function clearForceAndTraj() {
+        forceObjs.forEach(o => scene.remove(o));
+        forceObjs = [];
+        if (trajLine) { scene.remove(trajLine); trajLine = null; }
+    }
+
+    function addForceArrow(omegaDir, ballCenter) {
+        // F = ω × v, velocity = (0, 0, -1) in Three.js
+        const vDir = new THREE.Vector3(0, 0, -1);
+        const fDir = new THREE.Vector3().crossVectors(omegaDir, vDir);
+        if (fDir.length() < 0.001) return;
+        fDir.normalize();
+
+        const fLen = 0.8;
+        // Thick shaft
+        const shaftLen = fLen * 0.75;
+        const shaftGeo = new THREE.CylinderGeometry(0.02, 0.02, shaftLen, 8);
+        const shaftMat = new THREE.MeshBasicMaterial({color: 0x4fc3f7});
+        const shaft = new THREE.Mesh(shaftGeo, shaftMat);
+        const quat = new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0,1,0), fDir);
+        shaft.quaternion.copy(quat);
+        shaft.position.copy(ballCenter).add(fDir.clone().multiplyScalar(shaftLen/2 + ballRadius + 0.05));
+        scene.add(shaft);
+        forceObjs.push(shaft);
+
+        // Cone
+        const coneLen = fLen * 0.25;
+        const coneGeo = new THREE.ConeGeometry(0.05, coneLen, 8);
+        const coneMat = new THREE.MeshBasicMaterial({color: 0x4fc3f7});
+        const cone = new THREE.Mesh(coneGeo, coneMat);
+        cone.quaternion.copy(quat);
+        cone.position.copy(ballCenter).add(fDir.clone().multiplyScalar(shaftLen + coneLen/2 + ballRadius + 0.05));
+        scene.add(cone);
+        forceObjs.push(cone);
+
+        // Label
+        const labelPos = ballCenter.clone().add(fDir.clone().multiplyScalar(fLen + ballRadius + 0.2));
+        const label = makeTextSprite('F', labelPos, '#4fc3f7', 24);
+        forceObjs.push(label);
+    }
+
+    function addTrajectory(d) {
+        // Simple trajectory: ball moves from pitcher to home, with deflection from Magnus
+        // v direction = -Z, F direction = ω × v
+        const scale = 0.001;
+        const omegaVec = new THREE.Vector3(d.wx * scale, d.wz * scale, d.wy * scale);
+        const omegaNorm = omegaVec.clone().normalize();
+        const vDir = new THREE.Vector3(0, 0, -1);
+        const fDir = new THREE.Vector3().crossVectors(omegaNorm, vDir);
+        if (fDir.length() < 0.001) return;
+        fDir.normalize();
+
+        // Deflection magnitude (proportional to transverse spin)
+        const transverse = Math.sqrt(d.wx**2 + d.wz**2);
+        const deflectScale = transverse / 2500 * 1.2;  // normalize to typical FF
+
+        const points = [];
+        const nSteps = 60;
+        const startZ = 2.0;  // pitcher
+        const endZ = -3.0;   // home
+        const totalDist = startZ - endZ;
+
+        for (let i = 0; i <= nSteps; i++) {
+            const t = i / nSteps;
+            const z = startZ - t * totalDist;
+            // Deflection ∝ t² (constant force → parabolic)
+            const deflect = deflectScale * t * t;
+            // Gravity drop (additional)
+            const gravDrop = -0.8 * t * t;  // ~80cm total drop
+            const x = fDir.x * deflect;
+            const y = 0.8 + fDir.y * deflect + gravDrop;
+            points.push(new THREE.Vector3(x, Math.max(y, 0.05), z));
+        }
+
+        // Also no-spin trajectory (dashed, cyan)
+        const noSpinPoints = [];
+        for (let i = 0; i <= nSteps; i++) {
+            const t = i / nSteps;
+            const z = startZ - t * totalDist;
+            const gravDrop = -0.8 * t * t;
+            noSpinPoints.push(new THREE.Vector3(0, Math.max(0.8 + gravDrop, 0.05), z));
+        }
+
+        // No-spin trajectory (dashed cyan)
+        const nsGeo = new THREE.BufferGeometry().setFromPoints(noSpinPoints);
+        const nsMat = new THREE.LineDashedMaterial({color: 0x00cccc, dashSize: 0.15, gapSize: 0.1});
+        const nsLine = new THREE.Line(nsGeo, nsMat);
+        nsLine.computeLineDistances();
+        scene.add(nsLine);
+        forceObjs.push(nsLine);
+
+        // Spin trajectory (solid, pitch color)
+        const tGeo = new THREE.BufferGeometry().setFromPoints(points);
+        const tMat = new THREE.LineBasicMaterial({color: d.color || 0xff8800, linewidth: 2});
+        trajLine = new THREE.Line(tGeo, tMat);
+        scene.add(trajLine);
+    }
+
     function updateBSG(pitchKey) {
         clearArrows();
+        clearForceAndTraj();
         const info = document.getElementById('bsg-info');
+        const ballCenter = new THREE.Vector3(0, 0.8, 0);
 
         if (pitchKey === 'all') {
             let text = '';
             Object.keys(pitchData).forEach(k => {
-                const r = addPitchArrow(k);
-                if (r) text += `${r.data.name}  `;
+                addPitchArrow(k);
+                // Add trajectory for each
+                addTrajectory(pitchData[k]);
             });
-            info.textContent = text;
+            info.textContent = '全球種の軌跡を表示中（実線=スピンあり、破線=スピンなし）';
             ballOmega.set(0, 0, 0);
         } else {
             const r = addPitchArrow(pitchKey);
@@ -786,9 +891,16 @@ $$C_D = c_{d0} + c_{d,\text{spin}} \cdot \frac{\omega_{\text{total}}}{1000}$$
                 const eff = Math.sqrt(d.wx**2 + d.wz**2) / totalRPM * 100;
                 info.textContent = `${d.name}: ${d.speed}mph, ${d.spin}rpm, スピン効率=${eff.toFixed(0)}%`;
 
-                // Set ball rotation (scaled down for visual)
-                const rotScale = 0.0003;
+                // Set ball rotation (scaled down for visual, halved speed)
+                const rotScale = 0.00015;
                 ballOmega.set(d.wx * rotScale, d.wz * rotScale, d.wy * rotScale);
+
+                // Force vector (ω × v)
+                const omegaNorm = r.dir.clone().normalize();
+                addForceArrow(omegaNorm, ballCenter);
+
+                // Trajectory
+                addTrajectory(d);
             }
         }
     }
@@ -804,10 +916,10 @@ $$C_D = c_{d0} + c_{d,\text{spin}} \cdot \frac{\omega_{\text{total}}}{1000}$$
         requestAnimationFrame(animate);
         const dt = clock.getDelta();
 
-        // Rotate ball
+        // Rotate ball (halved speed)
         if (ballOmega.length() > 0.0001) {
             const axis = ballOmega.clone().normalize();
-            const angle = ballOmega.length() * dt * 60;
+            const angle = ballOmega.length() * dt * 30;
             ball.rotateOnWorldAxis(axis, angle);
         }
 
