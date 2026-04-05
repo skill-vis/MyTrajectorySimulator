@@ -590,85 +590,284 @@ $$\hat{\mathbf{e}}_G = \frac{\mathbf{v}}{|\mathbf{v}|}, \quad
 <!-- ========== 第3章 ========== -->
 <h2 id="ch3">第3章: 各球種のωベクトル — なぜそう曲がるのか</h2>
 
+<p>各球種の典型的なωベクトルと軌跡を3Dで確認しよう。球種を選択すると、回転軸・マグヌス力・軌跡が表示される。</p>
+
+<div style="background:#111;border-radius:8px;padding:16px;margin:20px 0;">
+<canvas id="w3-canvas" style="width:100%;height:420px;border-radius:8px;cursor:grab;"></canvas>
+<div style="margin-top:12px;display:flex;gap:8px;flex-wrap:wrap;">
+<button class="w3-select" data-pitch="ff" style="font-size:12px;background:#333;color:#e94560;border:1px solid #555;border-radius:4px;padding:4px 12px;cursor:pointer;font-weight:bold;">FF ストレート</button>
+<button class="w3-select" data-pitch="cu" style="font-size:12px;background:#333;color:#44ccff;border:1px solid #555;border-radius:4px;padding:4px 12px;cursor:pointer;">CU カーブ</button>
+<button class="w3-select" data-pitch="sl" style="font-size:12px;background:#333;color:#4488ff;border:1px solid #555;border-radius:4px;padding:4px 12px;cursor:pointer;">SL スライダー</button>
+<button class="w3-select" data-pitch="si" style="font-size:12px;background:#333;color:#ff8844;border:1px solid #555;border-radius:4px;padding:4px 12px;cursor:pointer;">SI シンカー</button>
+<button class="w3-select" data-pitch="fs" style="font-size:12px;background:#333;color:#88cc88;border:1px solid #555;border-radius:4px;padding:4px 12px;cursor:pointer;">FS スプリット</button>
+<button class="w3-select" data-pitch="fc" style="font-size:12px;background:#333;color:#cc6600;border:1px solid #555;border-radius:4px;padding:4px 12px;cursor:pointer;">FC カッター</button>
+<button class="w3-select" data-pitch="all" style="font-size:12px;background:#333;color:#ddd;border:1px solid #555;border-radius:4px;padding:4px 12px;cursor:pointer;">全球種</button>
+</div>
+<div id="w3-info" style="color:#888;font-size:12px;margin-top:6px;"></div>
+</div>
+
 <h3>3-1. ストレート（4シーム, FF）</h3>
 
-<p>ストレートの角速度ベクトルは、ほぼ水平で進行方向に垂直な方向を向いている。TSG座標系では<strong>T成分が大きな負の値</strong>（= バックスピン）だ。</p>
+<figure style="margin:16px auto;text-align:center;">
+<svg viewBox="0 0 460 200" style="max-width:460px;width:100%;height:auto;" xmlns="http://www.w3.org/2000/svg" font-family="'Hiragino Sans','Noto Sans JP',sans-serif">
+<rect width="460" height="200" rx="8" fill="#12122a"/>
+<!-- Left: Catcher's view -->
+<text x="110" y="18" fill="#888" font-size="11" text-anchor="middle">捕手方向から</text>
+<circle cx="110" cy="105" r="45" fill="none" stroke="#555" stroke-width="1.5"/>
+<circle cx="110" cy="105" r="3" fill="#888"/>
+<!-- ω arrow: backspin → points left (3B) with slight down tilt. spin_axis≈209° -->
+<line x1="110" y1="105" x2="50" y2="118" stroke="#e94560" stroke-width="3"/>
+<polygon points="45,119 58,112 56,124" fill="#e94560"/>
+<text x="38" y="138" fill="#e94560" font-size="11" font-weight="bold">ω</text>
+<!-- Magnus force: pfx_x≈0, pfx_z=+1.25 → UP -->
+<line x1="110" y1="105" x2="110" y2="42" stroke="#4fc3f7" stroke-width="3"/>
+<polygon points="110,35 104,48 116,48" fill="#4fc3f7"/>
+<text x="122" y="48" fill="#4fc3f7" font-size="10" font-weight="bold">F (上向き)</text>
+<!-- Spin curve -->
+<path d="M90,75 A30,30 0 0,1 130,75" fill="none" stroke="#e94560" stroke-width="1.5" stroke-dasharray="4,2"/>
+<text x="110" y="172" fill="#666" font-size="10" text-anchor="middle">3B ← → 1B</text>
+<!-- Right: Top view -->
+<text x="340" y="18" fill="#888" font-size="11" text-anchor="middle">真上から</text>
+<circle cx="340" cy="105" r="45" fill="none" stroke="#555" stroke-width="1.5"/>
+<circle cx="340" cy="105" r="3" fill="#888"/>
+<!-- v arrow: up = toward catcher -->
+<line x1="340" y1="100" x2="340" y2="40" stroke="#44ff44" stroke-width="2" stroke-dasharray="5,3"/>
+<polygon points="340,34 335,46 345,46" fill="#44ff44"/>
+<text x="352" y="42" fill="#44ff44" font-size="10">v</text>
+<!-- ω arrow in top view: mostly left (backspin) + forward tilt (gyro) -->
+<line x1="340" y1="105" x2="282" y2="75" stroke="#e94560" stroke-width="3"/>
+<polygon points="277,72 292,70 288,82" fill="#e94560"/>
+<text x="270" y="68" fill="#e94560" font-size="11" font-weight="bold">ω</text>
+<!-- Gyro component indicator -->
+<line x1="282" y1="105" x2="282" y2="75" stroke="#44ff44" stroke-width="1" stroke-dasharray="3,2" opacity="0.5"/>
+<text x="265" y="110" fill="#44ff44" font-size="9" opacity="0.7">G成分</text>
+<text x="340" y="172" fill="#666" font-size="10" text-anchor="middle">3B ← → 1B</text>
+<!-- Info -->
+<text x="230" y="194" fill="#888" font-size="10" text-anchor="middle">大谷翔平 FF: 95.1mph, 2357rpm, スピン効率67%</text>
+</svg>
+</figure>
 
-<p>$\boldsymbol{\omega} \times \mathbf{v}$ で計算される力は<strong>上向き</strong>になる。これが重力に抗い、ボールを「浮かせる」（正確には「落ちにくくする」）効果を生む。</p>
-
-<p>大谷翔平のストレートは球速98 mph、回転数2500 rpm。スピン効率は約72%で、有効なバックスピン（負のトップスピン）は約1800 rpm。これにより、スピンなしに比べて<strong>約40 cm 高い位置</strong>でホームプレートに到達する。</p>
-
-<div style="display:flex;gap:8px;flex-wrap:wrap;margin:12px 0;">
-<button class="w2-show-pitch" data-pitcher="yamamoto" data-pitch="ff" style="font-size:12px;background:#333;color:#e94560;border:1px solid #555;border-radius:4px;padding:4px 12px;cursor:pointer;">▶ 山本 FF を表示</button>
-<button class="w2-show-pitch" data-pitcher="imanaga" data-pitch="ff" style="font-size:12px;background:#333;color:#e94560;border:1px solid #555;border-radius:4px;padding:4px 12px;cursor:pointer;">▶ 今永 FF を表示</button>
-<a href="https://baseball.skill-vis.com/?mlbam_id=660271&year=2025&date=2025-06-28&pitch=0" target="_blank" class="sim-link" style="margin:0;">🔵 大谷のFFを3Dで見る</a>
-</div>
+<p>ωはほぼ水平で進行方向に垂直（バックスピン方向）。マグヌス力が<strong>上向き</strong>に作用し、重力に抗ってボールを「浮かせる」。大谷のFFはスピンなしに比べて<strong>約40 cm 高い位置</strong>でホームに到達する。</p>
 
 <div class="highlight">
 <strong>ストレートこそ最大の変化球:</strong> バックスピンによる上向きの力で、40 cm以上の「変化」を生む。これは多くの変化球よりも大きな変化量だ。
 </div>
 
+<div style="display:flex;gap:8px;flex-wrap:wrap;margin:12px 0;">
+<button class="w3-jump" data-pitch="ff" style="font-size:12px;background:#333;color:#e94560;border:1px solid #555;border-radius:4px;padding:4px 12px;cursor:pointer;">▶ FFのωを3Dで見る</button>
+<a href="https://baseball.skill-vis.com/?mlbam_id=660271&year=2025&date=2025-06-28&pitch=0" target="_blank" class="sim-link" style="margin:0;">🔵 大谷のFFをシミュレート</a>
+</div>
+
 <h3>3-2. カーブ（CU）</h3>
 
-<p>カーブの角速度ベクトルは、ストレートとほぼ<strong>逆方向</strong>（トップスピン方向）を向く。$\boldsymbol{\omega} \times \mathbf{v}$ は<strong>下向き + 横方向</strong>の力を生み、ボールが大きく落下しながら曲がる。</p>
+<figure style="margin:16px auto;text-align:center;">
+<svg viewBox="0 0 460 200" style="max-width:460px;width:100%;height:auto;" xmlns="http://www.w3.org/2000/svg" font-family="'Hiragino Sans','Noto Sans JP',sans-serif">
+<rect width="460" height="200" rx="8" fill="#12122a"/>
+<text x="110" y="18" fill="#888" font-size="11" text-anchor="middle">捕手方向から</text>
+<circle cx="110" cy="105" r="45" fill="none" stroke="#555" stroke-width="1.5"/>
+<circle cx="110" cy="105" r="3" fill="#888"/>
+<!-- ω: topspin → points right (1B) + up. spin_axis≈42° (1-2 o'clock) -->
+<line x1="110" y1="105" x2="155" y2="62" stroke="#44ccff" stroke-width="3"/>
+<polygon points="159,58 148,56 150,68" fill="#44ccff"/>
+<text x="162" y="55" fill="#44ccff" font-size="11" font-weight="bold">ω</text>
+<!-- Magnus force: pfx_x=+0.93 (3B=left), pfx_z=-1.14 (down) → lower-left -->
+<line x1="110" y1="105" x2="72" y2="152" stroke="#4fc3f7" stroke-width="3"/>
+<polygon points="68,157 76,145 84,155" fill="#4fc3f7"/>
+<text x="28" y="162" fill="#4fc3f7" font-size="10" font-weight="bold">F (下+横)</text>
+<path d="M130,135 A30,30 0 0,1 90,135" fill="none" stroke="#44ccff" stroke-width="1.5" stroke-dasharray="4,2"/>
+<text x="110" y="172" fill="#666" font-size="10" text-anchor="middle">3B ← → 1B</text>
+<!-- Right: Top view -->
+<text x="340" y="18" fill="#888" font-size="11" text-anchor="middle">真上から</text>
+<circle cx="340" cy="105" r="45" fill="none" stroke="#555" stroke-width="1.5"/>
+<circle cx="340" cy="105" r="3" fill="#888"/>
+<line x1="340" y1="100" x2="340" y2="40" stroke="#44ff44" stroke-width="2" stroke-dasharray="5,3"/>
+<polygon points="340,34 335,46 345,46" fill="#44ff44"/>
+<text x="352" y="42" fill="#44ff44" font-size="10">v</text>
+<!-- ω: right (topspin) + forward tilt (gyro) -->
+<line x1="340" y1="105" x2="392" y2="72" stroke="#44ccff" stroke-width="3"/>
+<polygon points="396,68 386,67 388,79" fill="#44ccff"/>
+<text x="400" y="68" fill="#44ccff" font-size="11" font-weight="bold">ω</text>
+<text x="340" y="172" fill="#666" font-size="10" text-anchor="middle">3B ← → 1B</text>
+<text x="230" y="194" fill="#888" font-size="10" text-anchor="middle">大谷翔平 CU: 77.6mph, 2622rpm, スピン効率65%</text>
+</svg>
+</figure>
 
-<p>球速は低い（75-80 mph）が、回転数は高く（2500-2700 rpm）、トップスピン（T &gt; 0）とサイドスピンの両方が大きい。</p>
+<p>ωはFFとほぼ<strong>逆方向</strong>（トップスピン方向）。マグヌス力が<strong>下向き + 横方向</strong>に作用し、大きく落下しながら曲がる。球速は低い（75-80 mph）が、回転数は高い（2500-2700 rpm）。</p>
 
 <div style="display:flex;gap:8px;flex-wrap:wrap;margin:12px 0;">
-<button class="w2-show-pitch" data-pitcher="yamamoto" data-pitch="cu" style="font-size:12px;background:#333;color:#44ccff;border:1px solid #555;border-radius:4px;padding:4px 12px;cursor:pointer;">▶ 山本 CU を表示</button>
-<button class="w2-show-pitch" data-pitcher="imanaga" data-pitch="cu" style="font-size:12px;background:#333;color:#44ccff;border:1px solid #555;border-radius:4px;padding:4px 12px;cursor:pointer;">▶ 今永 CU を表示</button>
-<a href="https://baseball.skill-vis.com/?mlbam_id=660271&year=2025&date=2025-08-27&pitch=5" target="_blank" class="sim-link orange" style="margin:0;">🟠 大谷のCUを3Dで見る</a>
+<button class="w3-jump" data-pitch="cu" style="font-size:12px;background:#333;color:#44ccff;border:1px solid #555;border-radius:4px;padding:4px 12px;cursor:pointer;">▶ CUのωを3Dで見る</button>
+<a href="https://baseball.skill-vis.com/?mlbam_id=660271&year=2025&date=2025-08-27&pitch=5" target="_blank" class="sim-link orange" style="margin:0;">🟠 大谷のCUをシミュレート</a>
 </div>
 
 <h3>3-3. スライダー / スイーパー（SL/ST）</h3>
 
-<p>スライダーやスイーパーの角速度ベクトルは、<strong>速度方向に近い</strong>（ジャイロ成分が大きい）。しかし横向きのわずかなサイドスピン成分が鋭い横変化を生む。</p>
+<figure style="margin:16px auto;text-align:center;">
+<svg viewBox="0 0 460 200" style="max-width:460px;width:100%;height:auto;" xmlns="http://www.w3.org/2000/svg" font-family="'Hiragino Sans','Noto Sans JP',sans-serif">
+<rect width="460" height="200" rx="8" fill="#12122a"/>
+<text x="110" y="18" fill="#888" font-size="11" text-anchor="middle">捕手方向から</text>
+<circle cx="110" cy="105" r="45" fill="none" stroke="#555" stroke-width="1.5"/>
+<circle cx="110" cy="105" r="3" fill="#888"/>
+<!-- ω: mostly up (sidespin) + slight right. spin_axis≈68° (2 o'clock) -->
+<line x1="110" y1="105" x2="142" y2="50" stroke="#4488ff" stroke-width="3"/>
+<polygon points="145,44 136,44 138,56" fill="#4488ff"/>
+<text x="148" y="44" fill="#4488ff" font-size="11" font-weight="bold">ω</text>
+<!-- Magnus force: pfx_x=+2.02 (3B=left), pfx_z=+0.51 (up) → left + slight up -->
+<line x1="110" y1="105" x2="42" y2="90" stroke="#4fc3f7" stroke-width="3"/>
+<polygon points="36,88 50,84 48,96" fill="#4fc3f7"/>
+<text x="18" y="82" fill="#4fc3f7" font-size="10" font-weight="bold">F (横)</text>
+<text x="110" y="172" fill="#666" font-size="10" text-anchor="middle">3B ← → 1B</text>
+<!-- Right: Top view -->
+<text x="340" y="18" fill="#888" font-size="11" text-anchor="middle">真上から</text>
+<circle cx="340" cy="105" r="45" fill="none" stroke="#555" stroke-width="1.5"/>
+<circle cx="340" cy="105" r="3" fill="#888"/>
+<line x1="340" y1="100" x2="340" y2="40" stroke="#44ff44" stroke-width="2" stroke-dasharray="5,3"/>
+<polygon points="340,34 335,46 345,46" fill="#44ff44"/>
+<text x="352" y="42" fill="#44ff44" font-size="10">v</text>
+<!-- ω: almost purely right (sidespin), no gyro (eff≈100%) -->
+<line x1="340" y1="105" x2="398" y2="100" stroke="#4488ff" stroke-width="3"/>
+<polygon points="404,99 392,94 392,106" fill="#4488ff"/>
+<text x="408" y="104" fill="#4488ff" font-size="11" font-weight="bold">ω</text>
+<text x="340" y="135" fill="#44ff44" font-size="9" opacity="0.7">G成分 ≈ 0</text>
+<text x="340" y="172" fill="#666" font-size="10" text-anchor="middle">3B ← → 1B</text>
+<text x="230" y="194" fill="#888" font-size="10" text-anchor="middle">大谷翔平 ST: 85.2mph, 2625rpm, スピン効率100%</text>
+</svg>
+</figure>
 
-<p>大谷の2023年のスイーパーは、pfx_x（横変化量）が最大25インチに達し、MLBでも最大級の横変化を記録した。</p>
+<p>ωがほぼ<strong>鉛直上向き</strong>（サイドスピン主体）で、ジャイロ成分がほぼゼロ（スピン効率≈100%）。マグヌス力が<strong>水平方向</strong>に強く作用し、鋭い横変化を生む。大谷の2023年スイーパーは pfx_x ≈ 2インチ（約5 cm）に達し、MLB最大級の横変化を記録した。</p>
 
 <div style="display:flex;gap:8px;flex-wrap:wrap;margin:12px 0;">
-<button class="w2-show-pitch" data-pitcher="yamamoto" data-pitch="sl" style="font-size:12px;background:#333;color:#4488ff;border:1px solid #555;border-radius:4px;padding:4px 12px;cursor:pointer;">▶ 山本 SL を表示</button>
-<button class="w2-show-pitch" data-pitcher="imanaga" data-pitch="sl" style="font-size:12px;background:#333;color:#4488ff;border:1px solid #555;border-radius:4px;padding:4px 12px;cursor:pointer;">▶ 今永 SL を表示</button>
-<a href="https://baseball.skill-vis.com/?mlbam_id=660271&year=2023&date=2023-03-30&pitch=25" target="_blank" class="sim-link orange" style="margin:0;">🟠 大谷のST(2023)を3Dで見る</a>
+<button class="w3-jump" data-pitch="sl" style="font-size:12px;background:#333;color:#4488ff;border:1px solid #555;border-radius:4px;padding:4px 12px;cursor:pointer;">▶ SLのωを3Dで見る</button>
+<a href="https://baseball.skill-vis.com/?mlbam_id=660271&year=2023&date=2023-03-30&pitch=25" target="_blank" class="sim-link orange" style="margin:0;">🟠 大谷のSTをシミュレート</a>
 </div>
 
 <h3>3-4. シンカー（SI）</h3>
 
-<p>シンカーはストレートと同じバックスピン系だが、回転軸が<strong>鉛直方向に傾いている</strong>。右投手の場合、捕手から見た回転軸が12時方向（FF）から<strong>1時半〜2時方向</strong>に傾く。この傾きにより:</p>
+<figure style="margin:16px auto;text-align:center;">
+<svg viewBox="0 0 460 200" style="max-width:460px;width:100%;height:auto;" xmlns="http://www.w3.org/2000/svg" font-family="'Hiragino Sans','Noto Sans JP',sans-serif">
+<rect width="460" height="200" rx="8" fill="#12122a"/>
+<text x="110" y="18" fill="#888" font-size="11" text-anchor="middle">捕手方向から</text>
+<circle cx="110" cy="105" r="45" fill="none" stroke="#555" stroke-width="1.5"/>
+<circle cx="110" cy="105" r="3" fill="#888"/>
+<!-- ω: backspin + strong sidespin (down). spin_axis≈233° (≈8 o'clock) -->
+<line x1="110" y1="105" x2="62" y2="142" stroke="#ff8844" stroke-width="3"/>
+<polygon points="57,146 68,136 68,148" fill="#ff8844"/>
+<text x="40" y="158" fill="#ff8844" font-size="11" font-weight="bold">ω</text>
+<!-- Magnus force: pfx_x=-1.39 (1B=right), pfx_z=+0.31 (up) → right + slight up -->
+<line x1="110" y1="105" x2="172" y2="90" stroke="#4fc3f7" stroke-width="3"/>
+<polygon points="178,88 166,84 164,96" fill="#4fc3f7"/>
+<text x="168" y="80" fill="#4fc3f7" font-size="10" font-weight="bold">F (横+↑)</text>
+<!-- FF reference (ghost) -->
+<line x1="110" y1="105" x2="56" y2="116" stroke="#e94560" stroke-width="1" stroke-dasharray="4,3" opacity="0.4"/>
+<text x="48" y="112" fill="#e94560" font-size="9" opacity="0.5">FF</text>
+<text x="110" y="172" fill="#666" font-size="10" text-anchor="middle">3B ← → 1B</text>
+<!-- Right: Top view -->
+<text x="340" y="18" fill="#888" font-size="11" text-anchor="middle">真上から</text>
+<circle cx="340" cy="105" r="45" fill="none" stroke="#555" stroke-width="1.5"/>
+<circle cx="340" cy="105" r="3" fill="#888"/>
+<line x1="340" y1="100" x2="340" y2="40" stroke="#44ff44" stroke-width="2" stroke-dasharray="5,3"/>
+<polygon points="340,34 335,46 345,46" fill="#44ff44"/>
+<text x="352" y="42" fill="#44ff44" font-size="10">v</text>
+<!-- ω: left (backspin) + forward (gyro) -->
+<line x1="340" y1="105" x2="296" y2="78" stroke="#ff8844" stroke-width="3"/>
+<polygon points="291,75 302,72 300,84" fill="#ff8844"/>
+<text x="278" y="70" fill="#ff8844" font-size="11" font-weight="bold">ω</text>
+<text x="340" y="172" fill="#666" font-size="10" text-anchor="middle">3B ← → 1B</text>
+<text x="230" y="194" fill="#888" font-size="10" text-anchor="middle">ダルビッシュ有 SI: 93.8mph, 2228rpm, スピン効率86%</text>
+</svg>
+</figure>
 
-<ul>
-<li><strong>バックスピン成分（|T|）が減少</strong> → FFよりホップ量が小さく、沈む軌道になる</li>
-<li><strong>サイドスピン成分（S）が増加</strong> → アームサイド（右投手なら一塁方向）への横変化が生まれる</li>
-</ul>
-
-<p>典型的なシンカーはスピン効率が高く（ジャイロ成分が小さい）、回転のほとんどがボールの変化に寄与する。ダルビッシュのシンカー（Spin Axis ≈ 233°）はこの教科書的な例で、93-95 mph の球速でアームサイドに鋭く沈む。</p>
+<p>FFのωが捕手から見て<strong>下方向に傾く</strong>ことで、バックスピン成分が減り（ホップ量↓）、サイドスピン成分が増える（アームサイドへの横変化↑）。図中の破線はFFのω方向で、SIがFFからどれだけ傾いているかがわかる。ダルビッシュのSI（Spin Axis ≈ 233°）はスピン効率86%の教科書的な例。</p>
 
 <div style="display:flex;gap:8px;flex-wrap:wrap;margin:12px 0;">
-<button class="w2-show-pitch" data-pitcher="yamamoto" data-pitch="si" style="font-size:12px;background:#333;color:#ff8844;border:1px solid #555;border-radius:4px;padding:4px 12px;cursor:pointer;">▶ 山本 SI を表示</button>
-<button class="w2-show-pitch" data-pitcher="imanaga" data-pitch="si" style="font-size:12px;background:#333;color:#ff8844;border:1px solid #555;border-radius:4px;padding:4px 12px;cursor:pointer;">▶ 今永 SI を表示</button>
-<a href="https://baseball.skill-vis.com/?mlbam_id=506433&year=2025&date=2025-08-17&pitch=0" target="_blank" class="sim-link orange" style="margin:0;">🟠 ダルビッシュのSIを3Dで見る</a>
+<button class="w3-jump" data-pitch="si" style="font-size:12px;background:#333;color:#ff8844;border:1px solid #555;border-radius:4px;padding:4px 12px;cursor:pointer;">▶ SIのωを3Dで見る</button>
+<a href="https://baseball.skill-vis.com/?mlbam_id=506433&year=2025&date=2025-08-17&pitch=0" target="_blank" class="sim-link orange" style="margin:0;">🟠 ダルビッシュのSIをシミュレート</a>
 </div>
 
 <h3>3-5. フォーク / スプリット（FS）</h3>
 
-<p>フォークの特徴は<strong>回転数が少ない</strong>こと（1200-1500 rpm）。マグヌス力が弱いため、重力の影響が相対的に大きくなり、ボールが大きく落下する。</p>
+<figure style="margin:16px auto;text-align:center;">
+<svg viewBox="0 0 460 200" style="max-width:460px;width:100%;height:auto;" xmlns="http://www.w3.org/2000/svg" font-family="'Hiragino Sans','Noto Sans JP',sans-serif">
+<rect width="460" height="200" rx="8" fill="#12122a"/>
+<text x="110" y="18" fill="#888" font-size="11" text-anchor="middle">捕手方向から</text>
+<circle cx="110" cy="105" r="45" fill="none" stroke="#555" stroke-width="1.5"/>
+<circle cx="110" cy="105" r="3" fill="#888"/>
+<!-- ω: very short arrow (low spin 512rpm). Roughly backspin direction but small -->
+<line x1="110" y1="105" x2="94" y2="98" stroke="#88cc88" stroke-width="3"/>
+<polygon points="90,96 98,92 96,104" fill="#88cc88"/>
+<text x="78" y="92" fill="#88cc88" font-size="11" font-weight="bold">ω</text>
+<text x="78" y="104" fill="#88cc88" font-size="9">(小さい)</text>
+<!-- Magnus force: very small (pfx≈0) -->
+<text x="110" y="170" fill="#4fc3f7" font-size="10" text-anchor="middle">F ≈ ほぼゼロ</text>
+<!-- FF reference -->
+<line x1="110" y1="105" x2="56" y2="116" stroke="#e94560" stroke-width="1" stroke-dasharray="4,3" opacity="0.4"/>
+<text x="48" y="112" fill="#e94560" font-size="9" opacity="0.5">FF</text>
+<!-- Right: Top view -->
+<text x="340" y="18" fill="#888" font-size="11" text-anchor="middle">真上から</text>
+<circle cx="340" cy="105" r="45" fill="none" stroke="#555" stroke-width="1.5"/>
+<circle cx="340" cy="105" r="3" fill="#888"/>
+<line x1="340" y1="100" x2="340" y2="40" stroke="#44ff44" stroke-width="2" stroke-dasharray="5,3"/>
+<polygon points="340,34 335,46 345,46" fill="#44ff44"/>
+<text x="352" y="42" fill="#44ff44" font-size="10">v</text>
+<!-- ω: very short, mostly forward (gyro) -->
+<line x1="340" y1="105" x2="338" y2="92" stroke="#88cc88" stroke-width="3"/>
+<polygon points="337,86 333,96 343,96" fill="#88cc88"/>
+<text x="348" y="88" fill="#88cc88" font-size="9">ω (小)</text>
+<text x="340" y="172" fill="#666" font-size="10" text-anchor="middle">3B ← → 1B</text>
+<text x="230" y="194" fill="#888" font-size="10" text-anchor="middle">佐々木朗希 FS: 85.2mph, 512rpm, スピン効率50%</text>
+</svg>
+</figure>
 
-<p>「落ちる」のではなく、「ストレートのように浮かない」と表現する方が物理的に正確だ。スピン効率は高い（80%以上）が、絶対的なtransverse spin が少ないため変化量が小さい。</p>
+<p>フォークの本質は<strong>回転数の少なさ</strong>（512 rpm）。ω自体が短いため、マグヌス力がほぼ発生しない。FFと同じ球速でもホップ力がないため、重力に引かれて<strong>「ストレートのように浮かない」= 沈む</strong>軌道になる。「落ちる」のではなく「浮かない」が物理的に正確な表現だ。</p>
 
 <div style="display:flex;gap:8px;flex-wrap:wrap;margin:12px 0;">
-<button class="w2-show-pitch" data-pitcher="yamamoto" data-pitch="fs" style="font-size:12px;background:#333;color:#88cc88;border:1px solid #555;border-radius:4px;padding:4px 12px;cursor:pointer;">▶ 山本 FS を表示</button>
-<a href="https://baseball.skill-vis.com/?mlbam_id=808963&year=2025&date=2025-05-03&pitch=7" target="_blank" class="sim-link orange" style="margin:0;">🟠 佐々木朗希のFSを3Dで見る</a>
+<button class="w3-jump" data-pitch="fs" style="font-size:12px;background:#333;color:#88cc88;border:1px solid #555;border-radius:4px;padding:4px 12px;cursor:pointer;">▶ FSのωを3Dで見る</button>
+<a href="https://baseball.skill-vis.com/?mlbam_id=808963&year=2025&date=2025-05-03&pitch=7" target="_blank" class="sim-link orange" style="margin:0;">🟠 佐々木朗希のFSをシミュレート</a>
 </div>
 
 <h3>3-6. カッター（FC）</h3>
 
-<p>カッターはストレートとスライダーの中間的なω方向を持つ。球速はストレート並みだが、ωの傾きがわずかにスライダー寄りで、小さな横変化が加わる。</p>
+<figure style="margin:16px auto;text-align:center;">
+<svg viewBox="0 0 460 200" style="max-width:460px;width:100%;height:auto;" xmlns="http://www.w3.org/2000/svg" font-family="'Hiragino Sans','Noto Sans JP',sans-serif">
+<rect width="460" height="200" rx="8" fill="#12122a"/>
+<text x="110" y="18" fill="#888" font-size="11" text-anchor="middle">捕手方向から</text>
+<circle cx="110" cy="105" r="45" fill="none" stroke="#555" stroke-width="1.5"/>
+<circle cx="110" cy="105" r="3" fill="#888"/>
+<!-- ω: similar to FF but tilted. spin_axis≈212° -->
+<line x1="110" y1="105" x2="58" y2="120" stroke="#cc6600" stroke-width="3"/>
+<polygon points="53,121 66,114 64,126" fill="#cc6600"/>
+<text x="38" y="135" fill="#cc6600" font-size="11" font-weight="bold">ω</text>
+<!-- Magnus force: pfx_x≈0, pfx_z=+0.77 → mostly up -->
+<line x1="110" y1="105" x2="114" y2="52" stroke="#4fc3f7" stroke-width="3"/>
+<polygon points="114,45 108,58 120,58" fill="#4fc3f7"/>
+<text x="124" y="55" fill="#4fc3f7" font-size="10" font-weight="bold">F (↑)</text>
+<!-- FF reference -->
+<line x1="110" y1="105" x2="56" y2="116" stroke="#e94560" stroke-width="1" stroke-dasharray="4,3" opacity="0.4"/>
+<text x="48" y="112" fill="#e94560" font-size="9" opacity="0.5">FF</text>
+<text x="110" y="172" fill="#666" font-size="10" text-anchor="middle">3B ← → 1B</text>
+<!-- Right: Top view -->
+<text x="340" y="18" fill="#888" font-size="11" text-anchor="middle">真上から</text>
+<circle cx="340" cy="105" r="45" fill="none" stroke="#555" stroke-width="1.5"/>
+<circle cx="340" cy="105" r="3" fill="#888"/>
+<line x1="340" y1="100" x2="340" y2="40" stroke="#44ff44" stroke-width="2" stroke-dasharray="5,3"/>
+<polygon points="340,34 335,46 345,46" fill="#44ff44"/>
+<text x="352" y="42" fill="#44ff44" font-size="10">v</text>
+<!-- ω: mostly forward (very high gyro, eff=29%) -->
+<line x1="340" y1="105" x2="318" y2="58" stroke="#cc6600" stroke-width="3"/>
+<polygon points="316,52 312,64 324,62" fill="#cc6600"/>
+<text x="302" y="50" fill="#cc6600" font-size="11" font-weight="bold">ω</text>
+<text x="360" y="80" fill="#44ff44" font-size="9" opacity="0.7">G成分 大</text>
+<text x="340" y="172" fill="#666" font-size="10" text-anchor="middle">3B ← → 1B</text>
+<text x="230" y="194" fill="#888" font-size="10" text-anchor="middle">ダルビッシュ有 FC: 92.1mph, 2440rpm, スピン効率29%</text>
+</svg>
+</figure>
 
-<p>ストレート → カッター → スライダーと、ωベクトルの方向が連続的に変化していることがわかる。球種は離散的なカテゴリではなく、<strong>ω空間上の連続的な分布</strong>だ。</p>
+<p>捕手方向から見たωはFFに近いが、真上から見るとωが速度方向に大きく<strong>前傾</strong>しており（ジャイロ成分が大きい、スピン効率29%）、有効な変化を生む回転は少ない。それでもFF並みの球速（92 mph）でわずかな横変化が加わるため、FFとのコンビネーションで打者を惑わす。</p>
+
+<p>ストレート → カッター → スライダーと、ωの方向が連続的に変化していることがわかる。球種は離散的なカテゴリではなく、<strong>ω空間上の連続的な分布</strong>だ。</p>
 
 <div style="display:flex;gap:8px;flex-wrap:wrap;margin:12px 0;">
-<button class="w2-show-pitch" data-pitcher="yamamoto" data-pitch="fc" style="font-size:12px;background:#333;color:#cc6600;border:1px solid #555;border-radius:4px;padding:4px 12px;cursor:pointer;">▶ 山本 FC を表示</button>
-<a href="https://baseball.skill-vis.com/?mlbam_id=506433&year=2025&date=2025-08-27&pitch=5" target="_blank" class="sim-link orange" style="margin:0;">🟠 ダルビッシュのFCを3Dで見る</a>
+<button class="w3-jump" data-pitch="fc" style="font-size:12px;background:#333;color:#cc6600;border:1px solid #555;border-radius:4px;padding:4px 12px;cursor:pointer;">▶ FCのωを3Dで見る</button>
+<a href="https://baseball.skill-vis.com/?mlbam_id=506433&year=2025&date=2025-08-27&pitch=5" target="_blank" class="sim-link orange" style="margin:0;">🟠 ダルビッシュのFCをシミュレート</a>
 </div>
 
 <h3>球種の比較</h3>
@@ -676,8 +875,7 @@ $$\hat{\mathbf{e}}_G = \frac{\mathbf{v}}{|\mathbf{v}|}, \quad
 <p>複数の球種の軌道を重ねて比較すると、角速度の違いが軌道の違いとして表れることが直感的にわかる:</p>
 
 <div style="display:flex;gap:8px;flex-wrap:wrap;margin:12px 0;">
-<button class="w2-show-pitch" data-pitcher="yamamoto" data-pitch="all" style="font-size:12px;background:#333;color:#ddd;border:1px solid #555;border-radius:4px;padding:4px 12px;cursor:pointer;">▶ 山本 全球種を表示</button>
-<button class="w2-show-pitch" data-pitcher="imanaga" data-pitch="all" style="font-size:12px;background:#333;color:#ddd;border:1px solid #555;border-radius:4px;padding:4px 12px;cursor:pointer;">▶ 今永 全球種を表示</button>
+<button class="w3-jump" data-pitch="all" style="font-size:12px;background:#333;color:#ddd;border:1px solid #555;border-radius:4px;padding:4px 12px;cursor:pointer;">▶ 全球種のωを3Dで見る</button>
 <a href="https://baseball.skill-vis.com/?compare=660271,2025,2025-06-28,0|660271,2025,2025-08-27,5|660271,2025,2025-06-28,10" target="_blank" class="sim-link" style="margin:0;">🔵 大谷のFF vs CU vs STを3Dで比較</a>
 </div>
 
@@ -1343,6 +1541,308 @@ $$C_D = c_{d0} + c_{d,\text{spin}} \cdot \frac{\omega_{\text{total}}}{1000}$$
 
     // Initial: Fastball
     update();
+
+    const clock = new THREE.Clock();
+    function animate() {
+        requestAnimationFrame(animate);
+        const dt = clock.getDelta();
+        if (ballOmega.length() > 0.0001) {
+            const axis = ballOmega.clone().normalize();
+            ball.rotateOnWorldAxis(axis, ballOmega.length() * dt * 30);
+        }
+        controls.update();
+        renderer.render(scene, camera);
+    }
+    animate();
+})();
+
+// =========================================================================
+// Widget 3: Typical pitch examples (Chapter 3)
+// =========================================================================
+(function() {
+    const canvas = document.getElementById('w3-canvas');
+    if (!canvas) return;
+    const W = Math.max(canvas.clientWidth, 600);
+    const H = 420;
+
+    const scene = new THREE.Scene();
+    scene.background = new THREE.Color(0x0a0a1a);
+    const camera = new THREE.PerspectiveCamera(45, W/H, 0.1, 100);
+    camera.position.set(2, 2.5, 4);
+    const renderer = new THREE.WebGLRenderer({canvas, antialias: true});
+    renderer.setSize(W, H);
+    renderer.setPixelRatio(window.devicePixelRatio);
+
+    const controls = new THREE.OrbitControls(camera, canvas);
+    controls.enableDamping = true;
+    controls.target.set(0, 0.8, -1.5);
+
+    scene.add(new THREE.AmbientLight(0xffffff, 0.5));
+    const dirLight = new THREE.DirectionalLight(0xffffff, 0.6);
+    dirLight.position.set(3, 5, 3);
+    scene.add(dirLight);
+
+    const grid = new THREE.GridHelper(8, 16, 0x333355, 0x1a1a33);
+    scene.add(grid);
+
+    // Pitcher plate
+    const ppGeo = new THREE.BoxGeometry(0.5, 0.02, 0.12);
+    const ppMat = new THREE.MeshBasicMaterial({color: 0xcccccc, transparent: true, opacity: 0.6});
+    const pp = new THREE.Mesh(ppGeo, ppMat);
+    pp.position.set(0, 0.01, 2);
+    scene.add(pp);
+
+    function makeTextSprite(text, pos, color, size) {
+        const c = document.createElement('canvas');
+        c.width = 256; c.height = 64;
+        const ctx = c.getContext('2d');
+        ctx.fillStyle = color;
+        ctx.font = `bold ${size || 28}px sans-serif`;
+        ctx.textAlign = 'center';
+        ctx.fillText(text, 128, 40);
+        const tex = new THREE.CanvasTexture(c);
+        const sp = new THREE.Sprite(new THREE.SpriteMaterial({map: tex, transparent: true}));
+        sp.position.copy(pos);
+        sp.scale.set(1.2, 0.3, 1);
+        scene.add(sp);
+        return sp;
+    }
+    makeTextSprite('投手', new THREE.Vector3(0, 0.3, 2.3), '#888888');
+
+    // Home plate
+    const hpShape = new THREE.Shape();
+    const hs = 0.2;
+    hpShape.moveTo(0, hs*1.2); hpShape.lineTo(-hs, hs*0.4); hpShape.lineTo(-hs, -hs*0.4);
+    hpShape.lineTo(hs, -hs*0.4); hpShape.lineTo(hs, hs*0.4); hpShape.lineTo(0, hs*1.2);
+    const hpGeo = new THREE.ShapeGeometry(hpShape);
+    const hpMat = new THREE.MeshBasicMaterial({color: 0xffffff, transparent: true, opacity: 0.5, side: THREE.DoubleSide});
+    const homePlate = new THREE.Mesh(hpGeo, hpMat);
+    homePlate.rotation.x = -Math.PI / 2;
+    homePlate.position.set(0, 0.01, -3);
+    scene.add(homePlate);
+    makeTextSprite('ホーム', new THREE.Vector3(0, 0.3, -3.5), '#888888');
+
+    // Velocity arrow
+    const vStart = new THREE.Vector3(0, 0.8, 0);
+    const vEnd = new THREE.Vector3(0, 0.88, -1.2);
+    const vLineGeo = new THREE.BufferGeometry().setFromPoints([vStart, vEnd]);
+    const vLineMat = new THREE.LineDashedMaterial({color: 0x44ff44, dashSize: 0.12, gapSize: 0.06});
+    const vLine = new THREE.Line(vLineGeo, vLineMat);
+    vLine.computeLineDistances();
+    scene.add(vLine);
+    const vConeGeo = new THREE.ConeGeometry(0.05, 0.15, 8);
+    const vConeMat = new THREE.MeshBasicMaterial({color: 0x44ff44});
+    const vCone = new THREE.Mesh(vConeGeo, vConeMat);
+    vCone.position.copy(vEnd);
+    const vDirNorm = vEnd.clone().sub(vStart).normalize();
+    vCone.quaternion.setFromUnitVectors(new THREE.Vector3(0,1,0), vDirNorm);
+    scene.add(vCone);
+    makeTextSprite('v (速度)', new THREE.Vector3(0.35, 1.05, -0.6), '#44ff44', 22);
+
+    // Baseball
+    const ballRadius = 0.18;
+    const ballGeo = new THREE.SphereGeometry(ballRadius, 32, 32);
+    const seamCanvas = document.createElement('canvas');
+    seamCanvas.width = 256; seamCanvas.height = 256;
+    const sctx = seamCanvas.getContext('2d');
+    sctx.fillStyle = '#e8e0d0'; sctx.fillRect(0, 0, 256, 256);
+    sctx.strokeStyle = '#cc2222'; sctx.lineWidth = 3;
+    sctx.beginPath();
+    for (let i = 0; i < 256; i += 2) {
+        const y = 128 + 40 * Math.sin(i * Math.PI * 4 / 256);
+        if (i === 0) sctx.moveTo(i, y); else sctx.lineTo(i, y);
+    }
+    sctx.stroke();
+    sctx.beginPath();
+    for (let i = 0; i < 256; i += 2) {
+        const y = 128 - 40 * Math.sin(i * Math.PI * 4 / 256 + Math.PI);
+        if (i === 0) sctx.moveTo(i, y); else sctx.lineTo(i, y);
+    }
+    sctx.stroke();
+    const seamTex = new THREE.CanvasTexture(seamCanvas);
+    const ballMat = new THREE.MeshPhongMaterial({map: seamTex});
+    const ball = new THREE.Mesh(ballGeo, ballMat);
+    ball.position.set(0, 0.8, 0);
+    scene.add(ball);
+
+    let ballOmega = new THREE.Vector3(0, 0, 0);
+
+    // Typical pitch data (from Statcast via BSG conversion)
+    const pitchData = {
+        ff: {name:'FF 大谷翔平', color:0xe94560, wx:1531, wz:-236, wy:1702, speed:95.1, spin:2357},
+        cu: {name:'CU 大谷翔平', color:0x44ccff, wx:-1339, wz:1092, wy:2017, speed:77.6, spin:2622},
+        sl: {name:'SL 大谷翔平', color:0x4488ff, wx:643, wz:2545, wy:-28, speed:85.2, spin:2625},
+        si: {name:'SI ダルビッシュ有', color:0xff8844, wx:416, wz:-1874, wy:1123, speed:93.8, spin:2228},
+        fs: {name:'FS 佐々木朗希', color:0x88cc88, wx:-61, wz:245, wy:433, speed:85.2, spin:512},
+        fc: {name:'FC ダルビッシュ有', color:0xcc6600, wx:686, wz:-89, wy:2294, speed:92.1, spin:2440},
+    };
+
+    let currentArrows = [];
+    let forceObjs = [];
+    let trajObjs = [];
+    let trajLine = null;
+
+    function clearArrows() { currentArrows.forEach(a => scene.remove(a)); currentArrows = []; }
+    function clearForceAndTraj() { forceObjs.forEach(o => scene.remove(o)); forceObjs = []; }
+    function clearTrajectories() { trajObjs.forEach(o => scene.remove(o)); trajObjs = []; if (trajLine) { scene.remove(trajLine); trajLine = null; } }
+
+    function addPitchArrow(key, origin) {
+        const d = pitchData[key];
+        if (!d) return;
+        const scale = 0.001;
+        const dir = new THREE.Vector3(-d.wx * scale, -d.wz * scale, -d.wy * scale);
+        const len = dir.length();
+        if (len < 0.01) return;
+        const dirNorm = dir.clone().normalize();
+        const ballCenter = origin || new THREE.Vector3(0, 0.8, 0);
+        const halfDir = dirNorm.clone().multiplyScalar(len / 2);
+        const arrowStart = ballCenter.clone().sub(halfDir);
+        const shaftLen = len * 0.8;
+        const shaftGeo = new THREE.CylinderGeometry(0.025, 0.025, shaftLen, 8);
+        const shaftMat = new THREE.MeshBasicMaterial({color: d.color});
+        const shaft = new THREE.Mesh(shaftGeo, shaftMat);
+        const quat = new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0,1,0), dirNorm);
+        shaft.quaternion.copy(quat);
+        shaft.position.copy(arrowStart).add(dirNorm.clone().multiplyScalar(shaftLen / 2));
+        scene.add(shaft); currentArrows.push(shaft);
+        const coneLen = len * 0.2;
+        const coneGeo = new THREE.ConeGeometry(0.06, coneLen, 8);
+        const coneMat = new THREE.MeshBasicMaterial({color: d.color});
+        const cone = new THREE.Mesh(coneGeo, coneMat);
+        cone.quaternion.copy(quat);
+        cone.position.copy(arrowStart).add(dirNorm.clone().multiplyScalar(shaftLen + coneLen / 2));
+        scene.add(cone); currentArrows.push(cone);
+        const tipPos = arrowStart.clone().add(dirNorm.clone().multiplyScalar(len * 1.2));
+        const label = makeTextSprite(key.toUpperCase(), tipPos, '#' + d.color.toString(16).padStart(6, '0'), 24);
+        currentArrows.push(label);
+        return {dir, len, data: d};
+    }
+
+    function addForceArrow(omegaDir, ballCenter) {
+        const vDir = new THREE.Vector3(0, 0, -1);
+        const fDir = new THREE.Vector3().crossVectors(vDir, omegaDir).negate();
+        if (fDir.length() < 0.001) return;
+        fDir.normalize();
+        const fLen = 0.8;
+        const shaftLen = fLen * 0.75;
+        const shaftGeo = new THREE.CylinderGeometry(0.02, 0.02, shaftLen, 8);
+        const shaftMat = new THREE.MeshBasicMaterial({color: 0x4fc3f7});
+        const shaft = new THREE.Mesh(shaftGeo, shaftMat);
+        const quat = new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0,1,0), fDir);
+        shaft.quaternion.copy(quat);
+        shaft.position.copy(ballCenter).add(fDir.clone().multiplyScalar(shaftLen/2 + ballRadius + 0.05));
+        scene.add(shaft); forceObjs.push(shaft);
+        const coneLen = fLen * 0.25;
+        const coneGeo = new THREE.ConeGeometry(0.05, coneLen, 8);
+        const coneMat = new THREE.MeshBasicMaterial({color: 0x4fc3f7});
+        const cone = new THREE.Mesh(coneGeo, coneMat);
+        cone.quaternion.copy(quat);
+        cone.position.copy(ballCenter).add(fDir.clone().multiplyScalar(shaftLen + coneLen/2 + ballRadius + 0.05));
+        scene.add(cone); forceObjs.push(cone);
+        const labelPos = ballCenter.clone().add(fDir.clone().multiplyScalar(fLen + ballRadius + 0.2));
+        forceObjs.push(makeTextSprite('マグヌス力', labelPos, '#4fc3f7', 20));
+    }
+
+    function addTrajectory(d) {
+        const scale = 0.001;
+        const omegaVec = new THREE.Vector3(d.wx * scale, d.wz * scale, d.wy * scale);
+        const omegaNorm = omegaVec.clone().normalize();
+        const vDir = new THREE.Vector3(0, 0, -1);
+        const fDir = new THREE.Vector3().crossVectors(vDir, omegaNorm);
+        if (fDir.length() < 0.001) return null;
+        fDir.normalize();
+        const transverse = Math.sqrt(d.wx**2 + d.wz**2);
+        const deflectScale = transverse / 2500 * 1.2;
+        const nSteps = 80, startZ = 2.0, endZ = -3.0;
+        const totalDist = startZ - endZ;
+        const releaseHeight = 1.6, initUpAngle = 0.06;
+        const points = [], noSpinPoints = [];
+        for (let i = 0; i <= nSteps; i++) {
+            const t = i / nSteps;
+            const z = startZ - t * totalDist;
+            const deflect = deflectScale * t * t;
+            const gravDrop = -0.8 * t * t;
+            const initUp = initUpAngle * totalDist * t;
+            const x = fDir.x * deflect;
+            const y = releaseHeight + fDir.y * deflect + gravDrop + initUp;
+            if (y < 0.01) break;
+            points.push(new THREE.Vector3(x, y, z));
+            const yNS = releaseHeight + gravDrop + initUp;
+            if (yNS > 0.01) noSpinPoints.push(new THREE.Vector3(0, yNS, z));
+        }
+        if (noSpinPoints.length > 1) {
+            const nsGeo = new THREE.BufferGeometry().setFromPoints(noSpinPoints);
+            const nsMat = new THREE.LineDashedMaterial({color: 0x00cccc, dashSize: 0.15, gapSize: 0.1});
+            const nsLine = new THREE.Line(nsGeo, nsMat);
+            nsLine.computeLineDistances();
+            scene.add(nsLine); trajObjs.push(nsLine);
+        }
+        if (points.length > 2) {
+            const curve = new THREE.CatmullRomCurve3(points);
+            const tubeGeo = new THREE.TubeGeometry(curve, points.length * 2, 0.012, 6, false);
+            const tubeMat = new THREE.MeshBasicMaterial({color: d.color || 0xff8800});
+            const tube = new THREE.Mesh(tubeGeo, tubeMat);
+            scene.add(tube); trajObjs.push(tube);
+        }
+        const ballT = (startZ - 0) / totalDist;
+        const bDeflect = deflectScale * ballT * ballT;
+        const bGrav = -0.8 * ballT * ballT;
+        const bUp = initUpAngle * totalDist * ballT;
+        return new THREE.Vector3(fDir.x * bDeflect, releaseHeight + fDir.y * bDeflect + bGrav + bUp, 0);
+    }
+
+    function updateW3(pitchKey) {
+        clearArrows(); clearForceAndTraj(); clearTrajectories();
+        const info = document.getElementById('w3-info');
+
+        if (pitchKey === 'all') {
+            let firstPos = null;
+            Object.keys(pitchData).forEach(k => {
+                addPitchArrow(k);
+                const pos = addTrajectory(pitchData[k]);
+                if (!firstPos && pos) firstPos = pos;
+            });
+            ball.position.copy(firstPos || new THREE.Vector3(0, 0.8, 0));
+            info.textContent = '全球種の軌跡を表示中（実線=スピンあり、破線=スピンなし）';
+            ballOmega.set(0, 0, 0);
+        } else {
+            const trajPos = addTrajectory(pitchData[pitchKey]);
+            const ballCenter = trajPos || new THREE.Vector3(0, 0.8, 0);
+            ball.position.copy(ballCenter);
+            const r = addPitchArrow(pitchKey, ballCenter);
+            if (r) {
+                const d = r.data;
+                const totalRPM = Math.sqrt(d.wx**2 + d.wy**2 + d.wz**2);
+                const eff = Math.sqrt(d.wx**2 + d.wz**2) / totalRPM * 100;
+                info.textContent = `${d.name}: ${d.speed}mph, ${d.spin}rpm, スピン効率=${eff.toFixed(0)}%`;
+                const rotScale = 0.00015;
+                ballOmega.set(-d.wx * rotScale, -d.wz * rotScale, -d.wy * rotScale);
+                const omegaNorm = r.dir.clone().normalize();
+                addForceArrow(omegaNorm, ballCenter);
+            }
+        }
+
+        // Update button styles
+        document.querySelectorAll('.w3-select').forEach(btn => {
+            btn.style.fontWeight = btn.dataset.pitch === pitchKey ? 'bold' : 'normal';
+            btn.style.borderColor = btn.dataset.pitch === pitchKey ? '#aaa' : '#555';
+        });
+    }
+
+    // Button listeners (widget header buttons)
+    document.querySelectorAll('.w3-select').forEach(btn => {
+        btn.addEventListener('click', function() { updateW3(this.dataset.pitch); });
+    });
+
+    // Jump buttons from chapter 3 sections
+    document.querySelectorAll('.w3-jump').forEach(btn => {
+        btn.addEventListener('click', function() {
+            updateW3(this.dataset.pitch);
+            document.getElementById('w3-canvas').scrollIntoView({behavior: 'smooth', block: 'center'});
+        });
+    });
+
+    updateW3('ff');
 
     const clock = new THREE.Clock();
     function animate() {
