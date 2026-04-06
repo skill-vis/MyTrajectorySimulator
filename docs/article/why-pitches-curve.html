@@ -682,6 +682,7 @@ $$\hat{\mathbf{e}}_G = \frac{\mathbf{v}}{|\mathbf{v}|}, \quad
 <div style="margin-top:12px;display:flex;gap:8px;flex-wrap:wrap;">
 <button class="w3-select" data-pitch="ff" style="font-size:12px;background:#333;color:#e94560;border:1px solid #555;border-radius:4px;padding:4px 12px;cursor:pointer;font-weight:bold;">FF ストレート</button>
 <button class="w3-select" data-pitch="cu" style="font-size:12px;background:#333;color:#44ccff;border:1px solid #555;border-radius:4px;padding:4px 12px;cursor:pointer;">CU カーブ</button>
+<button class="w3-select" data-pitch="st" style="font-size:12px;background:#333;color:#aa44ff;border:1px solid #555;border-radius:4px;padding:4px 12px;cursor:pointer;">ST スイーパー</button>
 <button class="w3-select" data-pitch="sl" style="font-size:12px;background:#333;color:#4488ff;border:1px solid #555;border-radius:4px;padding:4px 12px;cursor:pointer;">SL スライダー</button>
 <button class="w3-select" data-pitch="si" style="font-size:12px;background:#333;color:#ff8844;border:1px solid #555;border-radius:4px;padding:4px 12px;cursor:pointer;">SI シンカー</button>
 <button class="w3-select" data-pitch="fs" style="font-size:12px;background:#333;color:#88cc88;border:1px solid #555;border-radius:4px;padding:4px 12px;cursor:pointer;">FS スプリット</button>
@@ -781,7 +782,7 @@ $$\hat{\mathbf{e}}_G = \frac{\mathbf{v}}{|\mathbf{v}|}, \quad
 <a href="https://baseball.skill-vis.com/?mlbam_id=660271&year=2025&date=2025-08-27&pitch=5" target="_blank" class="sim-link orange" style="margin:0;">🟠 大谷のCUをシミュレート</a>
 </div>
 
-<h3>3-3. スライダー / スイーパー（SL/ST）</h3>
+<h3>3-3. スイーパー（ST）</h3>
 
 <figure style="margin:16px auto;text-align:center;">
 <svg viewBox="0 0 240 380" style="max-width:240px;width:100%;height:auto;" xmlns="http://www.w3.org/2000/svg" font-family="'Hiragino Sans','Noto Sans JP',sans-serif">
@@ -792,13 +793,12 @@ $$\hat{\mathbf{e}}_G = \frac{\mathbf{v}}{|\mathbf{v}|}, \quad
 <text x="140" y="40" fill="#4488ff" font-size="10" font-weight="bold">投球方向</text>
 <circle cx="120" cy="115" r="42" fill="none" stroke="#555" stroke-width="1.5"/>
 <circle cx="120" cy="115" r="3" fill="#888"/>
-<!-- ST top ω: wx=643(right), wy=0(G=0) → short right arrow (top-view projection ~1/4 of full) -->
+<!-- ST top ω: wx=643(right), wy=0(G=0) → short right -->
 <line x1="100" y1="115" x2="150" y2="115" stroke="#ff8a65" stroke-width="3"/>
 <polygon points="156,115 144,109 144,121" fill="#ff8a65"/>
 <text x="160" y="112" fill="#ff8a65" font-size="11" font-weight="bold">ω</text>
 <text x="120" y="172" fill="#555" font-size="9" text-anchor="middle">3B ← → 1B</text>
 <text x="120" y="196" fill="#888" font-size="11" text-anchor="middle">投手目線</text>
-<!-- Perspective arrow: narrow top, wide bottom (into screen) -->
 <polygon points="120,204 112,230 128,230" fill="#4488ff"/>
 <polygon points="112,230 108,236 132,236 128,230" fill="#3366cc"/>
 <polygon points="108,236 104,240 136,240 132,236" fill="#2244aa"/>
@@ -815,18 +815,61 @@ $$\hat{\mathbf{e}}_G = \frac{\mathbf{v}}{|\mathbf{v}|}, \quad
 </svg>
 </figure>
 
-<p>スイーパー（大きく横に曲がるスライダー）のωは、投手目線でほぼ<strong>鉛直上向き</strong>を向く。これはサイドスピンが支配的であることを意味する。真上から見るとωは進行方向に対して<strong>垂直</strong>（横向き）で、ジャイロ成分がほぼゼロ（スピン効率≈100%）。</p>
+<p>スイーパーのωは、投手目線でほぼ<strong>鉛直上向き</strong>を向く。これはサイドスピンが支配的であることを意味する。真上から見るとωは進行方向に対して<strong>垂直</strong>（横向き）で、ジャイロ成分がほぼゼロ（スピン効率≈100%）。</p>
 
-<p>$\boldsymbol{\omega} \times \mathbf{v}$ は<strong>水平方向</strong>に大きな力を生み、鋭い横変化となる。大谷の2023年スイーパーは横変化量 ≈ 61.6 cm に達し、MLB最大級の横変化を記録した。</p>
-
-<p>この大谷のスイーパーは<strong>極端な例</strong>で、ジャイロ成分がほぼゼロ（スピン効率≈100%）という理想的なサイドスピン球だ。一般的なスライダーはジャイロ成分がもっと大きく（MLB右投手平均のスピン効率は約30%）、横変化は小さくなるが縦の落差が加わる。スライダーからスイーパーまで、ωのジャイロ成分の大小として連続的に変化する。</p>
+<p>$\boldsymbol{\omega} \times \mathbf{v}$ は<strong>水平方向</strong>に大きな力を生み、鋭い横変化となる。大谷の2023年スイーパーは横変化量 ≈ 61.6 cm に達し、MLB最大級の横変化を記録した。この例は<strong>極端なスイーパー</strong>で、スピン効率≈100%という理想的なサイドスピン球だ。</p>
 
 <div style="display:flex;gap:8px;flex-wrap:wrap;margin:12px 0;">
-<button class="w3-jump" data-pitch="sl" style="font-size:12px;background:#333;color:#4488ff;border:1px solid #555;border-radius:4px;padding:4px 12px;cursor:pointer;">▶ SLのωを3Dで見る</button>
+<button class="w3-jump" data-pitch="st" style="font-size:12px;background:#333;color:#aa44ff;border:1px solid #555;border-radius:4px;padding:4px 12px;cursor:pointer;">▶ STのωを3Dで見る</button>
 <a href="https://baseball.skill-vis.com/?mlbam_id=660271&year=2023&date=2023-03-30&pitch=25" target="_blank" class="sim-link orange" style="margin:0;">🟠 大谷のSTをシミュレート</a>
 </div>
 
-<h3>3-4. シンカー（SI）</h3>
+<h3>3-4. スライダー（SL）</h3>
+
+<figure style="margin:16px auto;text-align:center;">
+<svg viewBox="0 0 240 380" style="max-width:240px;width:100%;height:auto;" xmlns="http://www.w3.org/2000/svg" font-family="'Hiragino Sans','Noto Sans JP',sans-serif">
+<rect width="240" height="380" rx="8" fill="#12122a"/>
+<text x="120" y="18" fill="#888" font-size="11" text-anchor="middle">真上から</text>
+<polygon points="120,28 113,42 127,42" fill="#4488ff"/>
+<line x1="120" y1="42" x2="120" y2="62" stroke="#4488ff" stroke-width="4"/>
+<text x="140" y="40" fill="#4488ff" font-size="10" font-weight="bold">投球方向</text>
+<circle cx="120" cy="115" r="42" fill="none" stroke="#555" stroke-width="1.5"/>
+<circle cx="120" cy="115" r="3" fill="#888"/>
+<!-- SL top ω: wx=209(right,small), wy=-2595(forward=up,very large) → mostly upward, slightly right -->
+<line x1="114" y1="150" x2="128" y2="75" stroke="#ff8a65" stroke-width="3"/>
+<polygon points="130,69 123,80 135,80" fill="#ff8a65"/>
+<text x="136" y="76" fill="#ff8a65" font-size="11" font-weight="bold">ω</text>
+<text x="56" y="100" fill="#555" font-size="8" opacity="0.6">G成分 大</text>
+<text x="120" y="172" fill="#555" font-size="9" text-anchor="middle">3B ← → 1B</text>
+<text x="120" y="196" fill="#888" font-size="11" text-anchor="middle">投手目線</text>
+<polygon points="120,204 112,230 128,230" fill="#4488ff"/>
+<polygon points="112,230 108,236 132,236 128,230" fill="#3366cc"/>
+<polygon points="108,236 104,240 136,240 132,236" fill="#2244aa"/>
+<text x="148" y="226" fill="#4488ff" font-size="10" font-weight="bold">投球方向</text>
+<circle cx="120" cy="290" r="42" fill="none" stroke="#555" stroke-width="1.5"/>
+<circle cx="120" cy="290" r="3" fill="#888"/>
+<!-- SL rear ω: wx=209(right,small), wz=279(up,small) → slightly right-up, short -->
+<line x1="112" y1="300" x2="134" y2="274" stroke="#ff8a65" stroke-width="3"/>
+<polygon points="137,269 128,270 130,282" fill="#ff8a65"/>
+<text x="140" y="272" fill="#ff8a65" font-size="11" font-weight="bold">ω</text>
+<text x="120" y="348" fill="#555" font-size="9" text-anchor="middle">3B ← → 1B</text>
+<text x="120" y="365" fill="#888" font-size="9" text-anchor="middle">山本由伸 SL: 87.1mph</text>
+<text x="120" y="377" fill="#888" font-size="9" text-anchor="middle">2626rpm, 効率13%</text>
+</svg>
+</figure>
+
+<p>スライダーのωは、スイーパーとは対照的に<strong>速度方向（ジャイロ軸）に近い</strong>方向を向く。真上から見るとωがほぼ投球方向に平行で、transverse spinが小さい。MLB右投手平均のスライダーのスピン効率は約30%で、山本の例（13%）はさらにジャイロ寄りだ。</p>
+
+<p>投手目線では、ωはボール中心からわずかに右上を向く程度で、FFやCUと比べて傾きが小さい。わずかなtransverse spin成分がサイドスピン方向に偏るため、$\boldsymbol{\omega} \times \mathbf{v}$ は<strong>横方向</strong>の力を生むが、スイーパーほどの変化量にはならない。代わりに縦の落差が加わり、「キレのある落ちるスライダー」となる。</p>
+
+<p>スイーパー（ST）からスライダー（SL）まで、ωのジャイロ成分の大小として<strong>連続的に変化する</strong>。球種分類は便宜的なカテゴリであり、実際には連続的なスペクトラムだ。</p>
+
+<div style="display:flex;gap:8px;flex-wrap:wrap;margin:12px 0;">
+<button class="w3-jump" data-pitch="sl" style="font-size:12px;background:#333;color:#4488ff;border:1px solid #555;border-radius:4px;padding:4px 12px;cursor:pointer;">▶ SLのωを3Dで見る</button>
+<a href="https://baseball.skill-vis.com/?mlbam_id=808967&year=2026&date=2026-04-01&pitch=57" target="_blank" class="sim-link orange" style="margin:0;">🟠 山本のSLをシミュレート</a>
+</div>
+
+<h3>3-5. シンカー（SI）</h3>
 
 <figure style="margin:16px auto;text-align:center;">
 <svg viewBox="0 0 240 380" style="max-width:240px;width:100%;height:auto;" xmlns="http://www.w3.org/2000/svg" font-family="'Hiragino Sans','Noto Sans JP',sans-serif">
@@ -876,7 +919,7 @@ $$\hat{\mathbf{e}}_G = \frac{\mathbf{v}}{|\mathbf{v}|}, \quad
 <a href="https://baseball.skill-vis.com/?mlbam_id=506433&year=2025&date=2025-08-17&pitch=0" target="_blank" class="sim-link orange" style="margin:0;">🟠 ダルビッシュのSIをシミュレート</a>
 </div>
 
-<h3>3-5. フォーク / スプリット（FS）</h3>
+<h3>3-6. フォーク / スプリット（FS）</h3>
 
 <figure style="margin:16px auto;text-align:center;">
 <svg viewBox="0 0 240 380" style="max-width:240px;width:100%;height:auto;" xmlns="http://www.w3.org/2000/svg" font-family="'Hiragino Sans','Noto Sans JP',sans-serif">
@@ -924,7 +967,7 @@ $$\hat{\mathbf{e}}_G = \frac{\mathbf{v}}{|\mathbf{v}|}, \quad
 <a href="https://baseball.skill-vis.com/?mlbam_id=808967&year=2026&date=2026-03-26&pitch=6" target="_blank" class="sim-link orange" style="margin:0;">🟠 山本のFSをシミュレート</a>
 </div>
 
-<h3>3-6. カッター（FC）</h3>
+<h3>3-7. カッター（FC）</h3>
 
 <figure style="margin:16px auto;text-align:center;">
 <svg viewBox="0 0 240 380" style="max-width:240px;width:100%;height:auto;" xmlns="http://www.w3.org/2000/svg" font-family="'Hiragino Sans','Noto Sans JP',sans-serif">
@@ -2052,7 +2095,8 @@ function sharedComputeTrajectory(scene, trajObjArray, d) {
     const pitchData = {
         ff: {name:'FF 山本由伸', color:0xe94560, wx:1900, wz:-852, wy:-761, speed:96.3, spin:2240},
         cu: {name:'CU 大谷翔平', color:0x44ccff, wx:-1376, wz:1127, wy:-1971, speed:77.6, spin:2622},
-        sl: {name:'ST 大谷翔平', color:0x4488ff, wx:643, wz:2545, wy:0, speed:85.2, spin:2625},
+        st: {name:'ST 大谷翔平', color:0xaa44ff, wx:643, wz:2545, wy:0, speed:85.2, spin:2625},
+        sl: {name:'SL 山本由伸', color:0x4488ff, wx:209, wz:279, wy:-2595, speed:87.1, spin:2626},
         si: {name:'SI ダルビッシュ有', color:0xff8844, wx:320, wz:-1891, wy:-1126, speed:93.8, spin:2228},
         fs: {name:'FS 山本由伸', color:0x88cc88, wx:67, wz:-1481, wy:0, speed:92.9, spin:1483},
         fc: {name:'FC ダルビッシュ有', color:0xcc6600, wx:534, wz:-73, wy:-2334, speed:92.1, spin:2440},
