@@ -153,7 +153,24 @@ figcaption {
 }
 .footer a { color: #888; }
 canvas { border-radius: 8px; }
+/* Zoomable figures */
+figure svg, figure img { cursor: zoom-in; }
+.modal-overlay {
+    display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+    background: rgba(0,0,0,0.85); z-index: 9999; cursor: zoom-out;
+    justify-content: center; align-items: center;
+}
+.modal-overlay.active { display: flex; }
+.modal-overlay > * { max-width: 95vw; max-height: 95vh; border-radius: 8px; }
 </style>
+<!-- Google Analytics -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-J1LGG2TY98"></script>
+<script>
+window.dataLayer = window.dataLayer || [];
+function gtag(){dataLayer.push(arguments);}
+gtag('js', new Date());
+gtag('config', 'G-J1LGG2TY98');
+</script>
 <!-- MathJax for equations -->
 <script>
 MathJax = { tex: { inlineMath: [['$', '$']], displayMath: [['$$', '$$']] } };
@@ -163,6 +180,7 @@ MathJax = { tex: { inlineMath: [['$', '$']], displayMath: [['$$', '$$']] } };
 <script src="https://cdn.jsdelivr.net/npm/three@0.145.0/examples/js/controls/OrbitControls.js"></script>
 </head>
 <body>
+<div class="modal-overlay" id="img-modal"></div>
 <div class="container">
 
 <h1>なぜ変化球は曲がるのか</h1>
@@ -801,7 +819,7 @@ $$\hat{\mathbf{e}}_G = \frac{\mathbf{v}}{|\mathbf{v}|}, \quad
 
 <p>$\boldsymbol{\omega} \times \mathbf{v}$ は<strong>水平方向</strong>に大きな力を生み、鋭い横変化となる。大谷の2023年スイーパーは横変化量 ≈ 61.6 cm に達し、MLB最大級の横変化を記録した。</p>
 
-<p>一般的なスライダーは、スイーパーよりもジャイロ成分が大きく（ωが速度方向に傾く）、スピン効率が低い。その場合、横変化は小さくなるが、縦の落差が加わる。スライダーからスイーパーまで、ωの傾き方は連続的に変化する。</p>
+<p>この大谷のスイーパーは<strong>極端な例</strong>で、ジャイロ成分がほぼゼロ（スピン効率≈100%）という理想的なサイドスピン球だ。一般的なスライダーはジャイロ成分がもっと大きく（MLB右投手平均のスピン効率は約30%）、横変化は小さくなるが縦の落差が加わる。スライダーからスイーパーまで、ωのジャイロ成分の大小として連続的に変化する。</p>
 
 <div style="display:flex;gap:8px;flex-wrap:wrap;margin:12px 0;">
 <button class="w3-jump" data-pitch="sl" style="font-size:12px;background:#333;color:#4488ff;border:1px solid #555;border-radius:4px;padding:4px 12px;cursor:pointer;">▶ SLのωを3Dで見る</button>
@@ -869,38 +887,41 @@ $$\hat{\mathbf{e}}_G = \frac{\mathbf{v}}{|\mathbf{v}|}, \quad
 <text x="140" y="40" fill="#4488ff" font-size="10" font-weight="bold">投球方向</text>
 <circle cx="120" cy="115" r="42" fill="none" stroke="#555" stroke-width="1.5"/>
 <circle cx="120" cy="115" r="3" fill="#888"/>
-<!-- FS top ω: very short. dir=(-2,-13) -->
-<line x1="122" y1="128" x2="118" y2="102" stroke="#ff8a65" stroke-width="3"/>
-<polygon points="117,96 113,106 123,106" fill="#ff8a65"/>
-<text x="128" y="98" fill="#ff8a65" font-size="9">ω (小)</text>
+<!-- FS top ω: wx=67(right,~0), wy=0(G=0) → tiny right. Much shorter than FF -->
+<line x1="116" y1="115" x2="130" y2="115" stroke="#ff8a65" stroke-width="3"/>
+<polygon points="136,115 126,110 126,120" fill="#ff8a65"/>
+<text x="140" y="112" fill="#ff8a65" font-size="9">ω (小)</text>
+<!-- FF reference ghost: mostly right, long -->
+<line x1="54" y1="130" x2="186" y2="100" stroke="#e94560" stroke-width="1" stroke-dasharray="4,3" opacity="0.3"/>
+<text x="188" y="98" fill="#e94560" font-size="8" opacity="0.4">FF</text>
 <text x="120" y="172" fill="#555" font-size="9" text-anchor="middle">3B ← → 1B</text>
 <text x="120" y="196" fill="#888" font-size="11" text-anchor="middle">投手目線</text>
-<!-- Perspective arrow: narrow top, wide bottom (into screen) -->
 <polygon points="120,204 112,230 128,230" fill="#4488ff"/>
 <polygon points="112,230 108,236 132,236 128,230" fill="#3366cc"/>
 <polygon points="108,236 104,240 136,240 132,236" fill="#2244aa"/>
 <text x="148" y="226" fill="#4488ff" font-size="10" font-weight="bold">投球方向</text>
-<circle cx="120" cy="280" r="42" fill="none" stroke="#555" stroke-width="1.5"/>
-<circle cx="120" cy="280" r="3" fill="#888"/>
-<!-- FS catcher ω: very short. dir=(-16,-7) -->
-<line x1="136" y1="287" x2="104" y2="273" stroke="#ff8a65" stroke-width="3"/>
-<polygon points="98,271 108,267 106,279" fill="#ff8a65"/>
-<text x="86" y="266" fill="#ff8a65" font-size="11" font-weight="bold">ω</text>
-<text x="84" y="278" fill="#ff8a65" font-size="9">(小さい)</text>
-<!-- FF reference ghost -->
-<line x1="180" y1="267" x2="60" y2="293" stroke="#e94560" stroke-width="1" stroke-dasharray="4,3" opacity="0.3"/>
-<text x="48" y="290" fill="#e94560" font-size="8" opacity="0.4">FF</text>
-<text x="120" y="340" fill="#555" font-size="9" text-anchor="middle">3B ← → 1B</text>
-<text x="120" y="365" fill="#888" font-size="9" text-anchor="middle">佐々木朗希 FS: 85.2mph</text>
-<text x="120" y="377" fill="#888" font-size="9" text-anchor="middle">512rpm, 効率50%</text>
+<circle cx="120" cy="290" r="42" fill="none" stroke="#555" stroke-width="1.5"/>
+<circle cx="120" cy="290" r="3" fill="#888"/>
+<!-- FS rear ω: wx=67(right,~0), wz=-1481(down,large) → mostly downward -->
+<line x1="118" y1="250" x2="122" y2="330" stroke="#ff8a65" stroke-width="3"/>
+<polygon points="123,336 116,326 130,326" fill="#ff8a65"/>
+<text x="134" y="334" fill="#ff8a65" font-size="11" font-weight="bold">ω</text>
+<!-- FF reference ghost: right-down -->
+<line x1="48" y1="275" x2="192" y2="305" stroke="#e94560" stroke-width="1" stroke-dasharray="4,3" opacity="0.3"/>
+<text x="194" y="312" fill="#e94560" font-size="8" opacity="0.4">FF</text>
+<text x="120" y="356" fill="#555" font-size="9" text-anchor="middle">3B ← → 1B</text>
+<text x="120" y="370" fill="#888" font-size="9" text-anchor="middle">山本由伸 FS: 92.9mph</text>
+<text x="120" y="380" fill="#888" font-size="9" text-anchor="middle">1483rpm, 効率100%</text>
 </svg>
 </figure>
 
-<p>フォークの本質は<strong>回転数の少なさ</strong>（512 rpm）。ω自体が短いため、マグヌス力がほぼ発生しない。FFと同じ球速でもホップ力がないため、重力に引かれて<strong>「ストレートのように浮かない」= 沈む</strong>軌道になる。「落ちる」のではなく「浮かない」が物理的に正確な表現だ。</p>
+<p>フォーク/スプリットの本質は、FFに比べて<strong>回転数が少ない</strong>こと。山本由伸のFSは1483 rpmで、FF（2240 rpm）の約2/3。投手目線ではωはSIに似た下方向（アームサイド方向のサイドスピン）を向くが、回転数自体が少ないためマグヌス力は小さい。</p>
+
+<p>FFと同じ球速（92 mph）でもホップ力が弱いため、重力に引かれて<strong>「ストレートのように浮かない」= 沈む</strong>軌道になる。物理的には「落ちる」のではなく「浮かない」が正確な表現だ。真上から見るとωは非常に短く（FFの参照線と比較）、回転の絶対量が少ないことがわかる。</p>
 
 <div style="display:flex;gap:8px;flex-wrap:wrap;margin:12px 0;">
 <button class="w3-jump" data-pitch="fs" style="font-size:12px;background:#333;color:#88cc88;border:1px solid #555;border-radius:4px;padding:4px 12px;cursor:pointer;">▶ FSのωを3Dで見る</button>
-<a href="https://baseball.skill-vis.com/?mlbam_id=808963&year=2025&date=2025-05-03&pitch=7" target="_blank" class="sim-link orange" style="margin:0;">🟠 佐々木朗希のFSをシミュレート</a>
+<a href="https://baseball.skill-vis.com/?mlbam_id=808967&year=2026&date=2026-03-26&pitch=6" target="_blank" class="sim-link orange" style="margin:0;">🟠 山本のFSをシミュレート</a>
 </div>
 
 <h3>3-6. カッター（FC）</h3>
@@ -966,11 +987,136 @@ $$\hat{\mathbf{e}}_G = \frac{\mathbf{v}}{|\mathbf{v}|}, \quad
 <!-- ========== 第4章 ========== -->
 <h2 id="ch4">第4章: ω空間で見る球種マップ</h2>
 
-<p>全ての球種の角速度ベクトルを3D空間にプロットすると、球種の「地図」が見える。</p>
+<p>第3章で見た各球種のωベクトルを、TSG座標系上に並べてプロットすると、球種の「地図」が見える。</p>
 
-<p>ストレートとカーブは空間の対極に位置し、スライダーはジャイロ軸に近く、シンカーはストレートの近くにある。この「地図」上の距離が、2つの投球の回転特性の近さを定量的に表している。</p>
+<!-- T-S plane (transverse spin plane) -->
+<figure style="margin:24px auto;text-align:center;">
+<svg viewBox="0 0 480 400" style="max-width:480px;width:100%;height:auto;" xmlns="http://www.w3.org/2000/svg" font-family="'Hiragino Sans','Noto Sans JP',sans-serif">
+<rect width="480" height="400" rx="8" fill="#12122a"/>
+<text x="240" y="22" fill="#aaa" font-size="13" font-weight="bold" text-anchor="middle">T-S 平面（マグヌス力を生む成分）</text>
+<!-- Axes -->
+<line x1="40" y1="200" x2="360" y2="200" stroke="#444" stroke-width="1"/>
+<line x1="200" y1="360" x2="200" y2="40" stroke="#444" stroke-width="1"/>
+<!-- Axis labels -->
+<text x="370" y="198" fill="#ff4444" font-size="11">T</text>
+<text x="370" y="212" fill="#ff4444" font-size="9">(トップスピン)</text>
+<text x="30" y="204" fill="#ff4444" font-size="9">バックスピン</text>
+<text x="204" y="38" fill="#4488ff" font-size="11">S</text>
+<text x="215" y="52" fill="#4488ff" font-size="9">(サイドスピン)</text>
+<!-- Scale: 3000rpm = 150px → 1rpm = 0.05px. Center=(200,200) -->
+<!-- T axis: right=topspin(+), left=backspin(-) -->
+<!-- S axis: up=positive, down=negative -->
+<!-- FF: T=-1900, S=-852 → x=200+(-1900*0.05)=105, y=200-(-852*0.05)=243 -->
+<circle cx="105" cy="243" r="8" fill="#e94560" opacity="0.8"/>
+<text x="108" y="260" fill="#e94560" font-size="11" font-weight="bold">FF</text>
+<!-- CU: T=+1376, S=+1127 → x=200+(1376*0.05)=269, y=200-(1127*0.05)=144 -->
+<circle cx="269" cy="144" r="8" fill="#44ccff" opacity="0.8"/>
+<text x="278" y="140" fill="#44ccff" font-size="11" font-weight="bold">CU</text>
+<!-- ST: T=-643, S=+2545 → x=200+(-643*0.05)=168, y=200-(2545*0.05)=73 -->
+<circle cx="168" cy="73" r="8" fill="#4488ff" opacity="0.8"/>
+<text x="148" y="66" fill="#4488ff" font-size="11" font-weight="bold">ST</text>
+<!-- SI: T=-320, S=-1891 → x=200+(-320*0.05)=184, y=200-(-1891*0.05)=295 -->
+<circle cx="184" cy="295" r="8" fill="#ff8844" opacity="0.8"/>
+<text x="160" y="310" fill="#ff8844" font-size="11" font-weight="bold">SI</text>
+<!-- FS: T=-67, S=-1481 → x=200+(-67*0.05)=197, y=200-(-1481*0.05)=274 -->
+<circle cx="197" cy="274" r="6" fill="#88cc88" opacity="0.8"/>
+<text x="206" y="280" fill="#88cc88" font-size="10" font-weight="bold">FS</text>
+<!-- FC: T=-534, S=-73 → x=200+(-534*0.05)=173, y=200-(-73*0.05)=204 -->
+<circle cx="173" cy="204" r="6" fill="#cc6600" opacity="0.8"/>
+<text x="150" y="198" fill="#cc6600" font-size="10" font-weight="bold">FC</text>
+<!-- Annotations -->
+<line x1="105" y1="243" x2="269" y2="144" stroke="#666" stroke-width="1" stroke-dasharray="4,3" opacity="0.4"/>
+<text x="188" y="180" fill="#666" font-size="8" text-anchor="middle" opacity="0.6">FF↔CU 対極</text>
+<!-- Origin circle (spin eff = distance from origin) -->
+<circle cx="200" cy="200" r="75" fill="none" stroke="#333" stroke-width="1" stroke-dasharray="3,3"/>
+<text x="280" y="138" fill="#333" font-size="8">1500rpm</text>
+<circle cx="200" cy="200" r="150" fill="none" stroke="#333" stroke-width="1" stroke-dasharray="3,3"/>
+<text x="355" y="72" fill="#333" font-size="8">3000rpm</text>
+<!-- Caption -->
+<text x="200" y="390" fill="#888" font-size="10" text-anchor="middle">原点からの距離 = transverse spin（変化を生む有効回転量）</text>
+</svg>
+<figcaption>T-S平面への射影。FFとCUは対極に位置し、STはサイドスピン方向、SIはFFから下方向に傾く。<br>
+<span style="font-size:0.85em;color:#aaa;">
+<span style="color:#e94560;">●</span> FF: ストレート
+<span style="color:#44ccff;">●</span> CU: カーブ
+<span style="color:#4488ff;">●</span> ST: スイーパー
+<span style="color:#ff8844;">●</span> SI: シンカー
+<span style="color:#88cc88;">●</span> FS: スプリット
+<span style="color:#cc6600;">●</span> FC: カッター
+</span></figcaption>
+</figure>
 
-<p>角速度ベクトルの近さ（距離）は、球種分類やピッチトンネリングの分析に活用できる。</p>
+<p>上の<strong>T-S平面</strong>は、マグヌス力に寄与する成分（transverse spin）のみを表示している。原点からの距離が大きいほど変化量が大きい。</p>
+
+<ul>
+<li><strong>FFとCUは対極</strong>: T軸の正負の反対側に位置する。回転方向がほぼ逆であることがわかる</li>
+<li><strong>STはS軸方向</strong>: サイドスピンが支配的で、FFやCUとは直交する方向に変化する</li>
+<li><strong>SIはFFの下方</strong>: FFからS軸の負方向（アームサイド）に傾く。バックスピンが減り横変化が増える</li>
+<li><strong>FSはSIに近いが原点寄り</strong>: 方向は似ているが、回転数が少ないため原点に近い = 変化量が小さい</li>
+<li><strong>FCは原点の近く</strong>: transverse spinが非常に小さい。ジャイロ成分が大きいためT-S平面にはほとんど現れない</li>
+</ul>
+
+<!-- T-G plane (spin efficiency view) -->
+<figure style="margin:24px auto;text-align:center;">
+<svg viewBox="0 0 400 340" style="max-width:400px;width:100%;height:auto;" xmlns="http://www.w3.org/2000/svg" font-family="'Hiragino Sans','Noto Sans JP',sans-serif">
+<rect width="400" height="340" rx="8" fill="#12122a"/>
+<text x="200" y="22" fill="#aaa" font-size="13" font-weight="bold" text-anchor="middle">Transverse Spin vs G（スピン効率の視点）</text>
+<!-- Axes -->
+<line x1="60" y1="280" x2="380" y2="280" stroke="#444" stroke-width="1"/>
+<line x1="60" y1="280" x2="60" y2="40" stroke="#444" stroke-width="1"/>
+<text x="220" y="310" fill="#888" font-size="10" text-anchor="middle">G ジャイロ成分 (rpm) →</text>
+<text x="20" y="160" fill="#888" font-size="10" transform="rotate(-90,20,160)">Transverse (rpm) →</text>
+<!-- Scale: 0-3000 on both axes. 300px range → 0.1px/rpm -->
+<!-- G axis: right=more gyro. Trans axis: up=more transverse -->
+<!-- FF: trans=sqrt(1900²+852²)=2082, G=761 → x=60+761*0.1=136, y=280-2082*0.1=72 -->
+<circle cx="136" cy="72" r="8" fill="#e94560" opacity="0.8"/>
+<text x="145" y="68" fill="#e94560" font-size="11" font-weight="bold">FF</text>
+<!-- CU: trans=sqrt(1376²+1127²)=1778, G=1971 → x=60+1971*0.1=257, y=280-1778*0.1=102 -->
+<circle cx="257" cy="102" r="8" fill="#44ccff" opacity="0.8"/>
+<text x="266" y="98" fill="#44ccff" font-size="11" font-weight="bold">CU</text>
+<!-- ST: trans=sqrt(643²+2545²)=2625, G=0 → x=60, y=280-2625*0.1=17 → clamp to 40 -->
+<circle cx="60" cy="40" r="8" fill="#4488ff" opacity="0.8"/>
+<text x="72" y="36" fill="#4488ff" font-size="11" font-weight="bold">ST</text>
+<!-- SI: trans=sqrt(320²+1891²)=1918, G=1126 → x=60+1126*0.1=173, y=280-1918*0.1=88 -->
+<circle cx="173" cy="88" r="8" fill="#ff8844" opacity="0.8"/>
+<text x="182" y="84" fill="#ff8844" font-size="11" font-weight="bold">SI</text>
+<!-- FS: trans=sqrt(67²+1481²)=1483, G=0 → x=60, y=280-1483*0.1=132 -->
+<circle cx="60" cy="132" r="6" fill="#88cc88" opacity="0.8"/>
+<text x="72" y="128" fill="#88cc88" font-size="10" font-weight="bold">FS</text>
+<!-- FC: trans=sqrt(534²+73²)=539, G=2334 → x=60+2334*0.1=293, y=280-539*0.1=226 -->
+<circle cx="293" cy="226" r="6" fill="#cc6600" opacity="0.8"/>
+<text x="302" y="222" fill="#cc6600" font-size="10" font-weight="bold">FC</text>
+<!-- Spin efficiency lines -->
+<line x1="60" y1="280" x2="340" y2="40" stroke="#555" stroke-width="1" stroke-dasharray="3,3" opacity="0.3"/>
+<text x="310" y="56" fill="#555" font-size="8" opacity="0.5">eff=50%</text>
+<line x1="60" y1="280" x2="60" y2="40" stroke="#555" stroke-width="0" opacity="0"/>
+<!-- eff=100% line (left edge) and eff=0% line (bottom edge) are the axes themselves -->
+<text x="46" y="38" fill="#4fc3f7" font-size="8">eff=100%</text>
+<text x="350" y="276" fill="#888" font-size="8">eff=0%</text>
+<!-- Caption -->
+<text x="200" y="332" fill="#888" font-size="10" text-anchor="middle">左上ほどスピン効率が高い（変化に寄与する回転が多い）</text>
+</svg>
+<figcaption>Transverse Spin vs ジャイロ成分。左上がスピン効率100%、右下が0%。<br>
+<span style="font-size:0.85em;color:#aaa;">
+<span style="color:#e94560;">●</span> FF: ストレート
+<span style="color:#44ccff;">●</span> CU: カーブ
+<span style="color:#4488ff;">●</span> ST: スイーパー
+<span style="color:#ff8844;">●</span> SI: シンカー
+<span style="color:#88cc88;">●</span> FS: スプリット
+<span style="color:#cc6600;">●</span> FC: カッター
+</span></figcaption>
+</figure>
+
+<p>上の図は<strong>ジャイロ成分とtransverse spinの関係</strong>を示す。左軸（G=0）に近いほどスピン効率が高く、回転のほとんどがボールの変化に寄与する。</p>
+
+<ul>
+<li><strong>ST・FS</strong>はG=0の左端に位置し、スピン効率が最高（100%）。ただしFSは回転数自体が少ないため、transverse spinの絶対値はSTより小さい</li>
+<li><strong>FF・SI</strong>はジャイロ成分が小〜中程度で、高いtransverse spinを維持している</li>
+<li><strong>CU</strong>は意外にジャイロ成分が大きい。カーブは回転数が多いが、その一部はジャイロ方向に分配されている</li>
+<li><strong>FC</strong>はジャイロ成分が非常に大きく、transverse spinは小さい。回転数は多い（2440 rpm）にもかかわらず、変化に寄与する成分は少ない</li>
+</ul>
+
+<p>これらの「地図」上の距離が、2つの投球の回転特性の近さを定量的に表す。球種分類は離散的だが、ω空間では<strong>連続的な分布</strong>であり、投手によって同じ球種名でもω空間上の位置は異なる。この視点は、球種分類やピッチトンネリングの分析に活用できる。</p>
 
 <!-- ========== 補足 ========== -->
 <h2 id="appendix">補足: 研究者向け</h2>
@@ -1908,7 +2054,7 @@ function sharedComputeTrajectory(scene, trajObjArray, d) {
         cu: {name:'CU 大谷翔平', color:0x44ccff, wx:-1376, wz:1127, wy:-1971, speed:77.6, spin:2622},
         sl: {name:'ST 大谷翔平', color:0x4488ff, wx:643, wz:2545, wy:0, speed:85.2, spin:2625},
         si: {name:'SI ダルビッシュ有', color:0xff8844, wx:320, wz:-1891, wy:-1126, speed:93.8, spin:2228},
-        fs: {name:'FS 佐々木朗希', color:0x88cc88, wx:-93, wz:215, wy:-443, speed:85.2, spin:512},
+        fs: {name:'FS 山本由伸', color:0x88cc88, wx:67, wz:-1481, wy:0, speed:92.9, spin:1483},
         fc: {name:'FC ダルビッシュ有', color:0xcc6600, wx:534, wz:-73, wy:-2334, speed:92.1, spin:2440},
     };
 
@@ -2342,6 +2488,48 @@ function sharedComputeTrajectory(scene, trajObjArray, d) {
         renderer.render(scene, camera);
     }
     animate();
+})();
+
+// =========================================================================
+// Image/SVG zoom modal
+// =========================================================================
+(function() {
+    const modal = document.getElementById('img-modal');
+    // Click on any figure's svg or img to zoom
+    document.querySelectorAll('figure svg, figure img').forEach(el => {
+        el.addEventListener('click', function(e) {
+            e.stopPropagation();
+            modal.innerHTML = '';
+            const clone = this.cloneNode(true);
+            clone.style.cursor = 'zoom-out';
+            clone.removeAttribute('style');
+            if (clone.tagName === 'svg') {
+                clone.style.maxWidth = '95vw';
+                clone.style.maxHeight = '95vh';
+                clone.style.width = 'auto';
+                clone.style.height = 'auto';
+                clone.style.background = '#12122a';
+                clone.style.borderRadius = '8px';
+            } else {
+                clone.style.maxWidth = '95vw';
+                clone.style.maxHeight = '95vh';
+            }
+            modal.appendChild(clone);
+            modal.classList.add('active');
+        });
+    });
+    // Click overlay to close
+    modal.addEventListener('click', function() {
+        modal.classList.remove('active');
+        modal.innerHTML = '';
+    });
+    // Escape key to close
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape' && modal.classList.contains('active')) {
+            modal.classList.remove('active');
+            modal.innerHTML = '';
+        }
+    });
 })();
 </script>
 </body>
