@@ -491,7 +491,31 @@ Every pitch "moves." Compared to a ball flying under gravity alone, a spinning b
 
 <p>This rule — "the ball curves in the direction perpendicular to both the spin axis and the direction of travel" — provides a unified explanation for the movement of all pitch types.</p>
 
-<p>In the 3D widget below, use the sliders to change the spin axis (<span style="color:#ff8a65">orange arrow omega</span>) and see how the Magnus force (<span style="color:#4fc3f7">blue arrow F</span>) direction and trajectory change. Start from the fastball setting and try moving the sliders.</p>
+<h3>Cross Product — The Math Behind the Magnus Force Direction</h3>
+
+<p>The direction of the Magnus force is determined by the <strong>cross product</strong> $\boldsymbol{\omega} \times \mathbf{v}$ of the angular velocity vector $\boldsymbol{\omega}$ and the velocity vector $\mathbf{v}$. The cross product may look intimidating, but you only need to remember two rules:</p>
+
+<figure style="margin:16px auto;text-align:center;background:#12122a;border-radius:8px;padding:16px;">
+<img src="img/cross_vector.png" alt="Geometric meaning of cross product a × b" style="max-width:300px;width:100%;height:auto;">
+<figcaption>Geometric meaning of the cross product $\mathbf{a} \times \mathbf{b}$</figcaption>
+</figure>
+
+<div class="highlight">
+<strong>Two rules of the cross product:</strong>
+<ol>
+<li><strong>Direction</strong>: $\mathbf{a} \times \mathbf{b}$ points <strong>perpendicular to the plane</strong> formed by $\mathbf{a}$ and $\mathbf{b}$. The direction follows the right-hand rule (curl your fingers from $\mathbf{a}$ toward $\mathbf{b}$; your thumb points in the direction of the result).</li>
+<li><strong>Magnitude</strong>: Equal to the <strong>area of the parallelogram</strong> spanned by $\mathbf{a}$ and $\mathbf{b}$. Maximum when the two vectors are perpendicular, zero when they are parallel.</li>
+</ol>
+</div>
+
+<p>Applied to the Magnus force:</p>
+<ul>
+<li>When $\boldsymbol{\omega}$ (spin axis) and $\mathbf{v}$ (velocity) are <strong>perpendicular</strong> → parallelogram area is maximum → Magnus force is maximum (fastball backspin is this case)</li>
+<li>When $\boldsymbol{\omega}$ and $\mathbf{v}$ are <strong>parallel</strong> → area is zero → Magnus force is also zero (gyrospin is this case)</li>
+<li>The force direction is always <strong>perpendicular to both</strong> $\boldsymbol{\omega}$ and $\mathbf{v}$ → the ball moves in a direction perpendicular to the spin axis and the direction of travel</li>
+</ul>
+
+<p>In the 3D widget below, use the sliders to change the spin axis (<span style="color:#ff8a65">orange arrow ω</span>) and see how the Magnus force (<span style="color:#4fc3f7">blue arrow F</span>) direction and trajectory change. Start from the fastball setting and try moving the sliders.</p>
 
 <div style="background:#111;border-radius:8px;padding:16px;margin:20px 0;">
 <canvas id="magnus-canvas" style="width:100%;height:420px;border-radius:8px;cursor:grab;"></canvas>
