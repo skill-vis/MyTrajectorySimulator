@@ -1828,7 +1828,7 @@ function sharedDrawOmegaArrow(scene, objArray, d, key, ballCenter, makeLabel) {
     cone.position.copy(arrowStart).add(dirNorm.clone().multiplyScalar(shaftLen + coneLen / 2));
     scene.add(cone); objArray.push(cone);
     const tipPos = arrowStart.clone().add(dirNorm.clone().multiplyScalar(len * 1.2));
-    const label = makeLabel(key.toUpperCase(), tipPos, '#' + d.color.toString(16).padStart(6, '0'), 24);
+    const label = makeLabel(key, tipPos, '#' + d.color.toString(16).padStart(6, '0'), 24);
     objArray.push(label);
     return {dir, len, data: d};
 }
