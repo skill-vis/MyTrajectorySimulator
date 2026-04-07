@@ -609,8 +609,8 @@ $$C_D = c_{d0} + c_{d,\text{spin}} \cdot \frac{\color{#ff8a65}{\omega_{\text{tot
 <canvas id="magnus-canvas" style="width:100%;height:420px;border-radius:8px;cursor:grab;"></canvas>
 <div style="margin-top:10px;display:flex;flex-direction:column;gap:8px;">
 <div style="display:flex;gap:20px;flex-wrap:wrap;align-items:center;">
-<label style="color:#aaa;font-size:13px;">T (トップスピン角): <input type="range" id="m1-tilt" min="-90" max="90" value="66" style="width:160px;vertical-align:middle;"> <span id="m1-tilt-val" style="color:#ff8a65;font-weight:bold;">66°</span></label>
-<label style="color:#aaa;font-size:13px;">サイドスピン角: <input type="range" id="m1-yaw" min="-90" max="90" value="24" style="width:160px;vertical-align:middle;"> <span id="m1-yaw-val" style="color:#ff8a65;font-weight:bold;">24°</span></label>
+<label style="color:#aaa;font-size:13px;">T (トップスピン角): <input type="range" id="m1-tilt" min="-90" max="90" value="60" style="width:160px;vertical-align:middle;"> <span id="m1-tilt-val" style="color:#ff8a65;font-weight:bold;">60°</span></label>
+<label style="color:#aaa;font-size:13px;">サイドスピン角: <input type="range" id="m1-yaw" min="-90" max="90" value="23" style="width:160px;vertical-align:middle;"> <span id="m1-yaw-val" style="color:#ff8a65;font-weight:bold;">23°</span></label>
 </div>
 <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
 <span style="color:#666;font-size:12px;">プリセット:</span>
@@ -1814,23 +1814,35 @@ $$C_D = c_{d0} + c_{d,\text{spin}} \cdot \frac{\color{#ff8a65}{\omega_{\text{tot
     document.getElementById('m1-tilt').addEventListener('input', updateFromSliders);
     document.getElementById('m1-yaw').addEventListener('input', updateFromSliders);
 
-    // Preset buttons (use real pitch data directly)
+    // Preset buttons (use real pitch data directly + sync sliders)
     document.querySelectorAll('.m1-preset').forEach(btn => {
         btn.addEventListener('click', function() {
+            const wx = parseFloat(this.dataset.wx);
+            const wz = parseFloat(this.dataset.wz);
+            const wy = parseFloat(this.dataset.wy);
             const d = {
                 name: this.dataset.name,
                 color: 0xff8a65,
-                wx: parseFloat(this.dataset.wx),
-                wz: parseFloat(this.dataset.wz),
-                wy: parseFloat(this.dataset.wy),
+                wx: wx, wz: wz, wy: wy,
                 speed: parseFloat(this.dataset.speed),
                 spin: 2200
             };
+            // Sync sliders to approximate T/S angles (wy ignored by sliders)
+            const tApprox = Math.round(Math.asin(Math.max(-1, Math.min(1, wx / 2200))) * 180 / Math.PI);
+            const sApprox = Math.round(Math.asin(Math.max(-1, Math.min(1, -wz / 2200))) * 180 / Math.PI);
+            document.getElementById('m1-tilt').value = tApprox;
+            document.getElementById('m1-yaw').value = sApprox;
+            document.getElementById('m1-tilt-val').textContent = tApprox + '°';
+            document.getElementById('m1-yaw-val').textContent = sApprox + '°';
             render(d);
         });
     });
 
-    // Initial: Fastball (use real data)
+    // Initial: Fastball (use real data, sync sliders)
+    document.getElementById('m1-tilt').value = 60;
+    document.getElementById('m1-yaw').value = 23;
+    document.getElementById('m1-tilt-val').textContent = '60°';
+    document.getElementById('m1-yaw-val').textContent = '23°';
     render({name: 'FF 山本由伸', color: 0xff8a65, wx: 1900, wz: -852, wy: -761, speed: 96.3, spin: 2240});
 
     const clock = new THREE.Clock();
