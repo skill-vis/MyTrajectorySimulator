@@ -436,13 +436,13 @@ $$\color{#aaaaaa}{\mathbf{F}_D = -\frac{1}{2}C_D \rho A {\color{#44ff44}v} {\col
 <p>This simulator uses the Nathan model for the drag coefficient:</p>
 $$C_D = c_{d0} + c_{d,\text{spin}} \cdot \frac{\color{#ff8a65}{\omega_{\text{total}}}}{1000}$$
 <p>($c_{d0} = 0.297$, $c_{d,\text{spin}} = 0.0292$). The drag coefficient increases with spin rate (due to seam-induced turbulence).</p>
-<p>However, the spin-induced drag increase has a limited impact. For a 95 mph pitch:</p>
+<p>The effect of spin-induced drag increase on arrival speed is small compared to the $v^2$ term. For a 95 mph pitch:</p>
 <table style="font-size:0.9em;color:#aaa;border-collapse:collapse;width:100%;">
 <tr style="border-bottom:1px solid #444;"><th style="text-align:left;padding:4px;">Condition</th><th>$C_D$</th><th>Arrival speed</th><th>Speed loss</th></tr>
 <tr><td style="padding:4px;">No spin</td><td>0.297</td><td>86.3 mph</td><td>8.7 mph (9.2%)</td></tr>
 <tr><td style="padding:4px;">2000 rpm backspin</td><td>0.355 (+20%)</td><td>84.6 mph</td><td>10.4 mph (10.9%)</td></tr>
 </table>
-<p>While $C_D$ increases by about 20%, the additional speed loss is only about 1.6 mph. The dominant factor in drag is the $v^2$ term; the spin-dependent increase is a secondary correction.</p>
+<p>$C_D$ increases by about 20%, but the additional speed loss is about 1.6 mph (roughly 15% of the total 10.4 mph speed loss).</p>
 </div>
 </details>
 
