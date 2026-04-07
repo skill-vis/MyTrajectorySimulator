@@ -285,6 +285,15 @@ MathJax = { tex: { inlineMath: [['$', '$']], displayMath: [['$$', '$$']] } };
 <figcaption>図1. 飛翔中のボールに作用する3つの力: 重力（黄・下向き）、抗力（灰・進行方向と逆）、マグヌス力（青・回転による偏向力）。回転軸 ω（オレンジ破線）は右ねじの回転方向。</figcaption>
 </figure>
 
+<details>
+<summary>📐 研究者向け: 運動方程式と図1の対応</summary>
+<div>
+<p>図1に示した力は、以下の運動方程式で記述される:</p>
+$$m\ddot{\mathbf{x}} = \underbrace{-mg\hat{\mathbf{e}}_Z}_{\text{重力（黄）}} \underbrace{- \frac{1}{2}C_D \rho A v \mathbf{v}}_{\text{抗力（灰）}} + \underbrace{\frac{1}{2}C_L \rho A v^2 (\hat{\boldsymbol{\omega}} \times \hat{\mathbf{v}})}_{\text{マグヌス力（青）}}$$
+<p>右辺の3項が図1の3つの力に対応する。各項の詳細は以下のセクションで順に解説する。</p>
+</div>
+</details>
+
 <h3>1-1. 重力 — ボールを下に引く力</h3>
 
 <p>全ての物体に作用する下向きの力。95 mph（約153 km/h）のストレートでも、投手のリリースからホームプレートまでの約0.4秒間に、重力だけで<strong>約80 cm</strong>も落下する（図2）。</p>
