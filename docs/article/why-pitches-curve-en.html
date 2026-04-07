@@ -1275,9 +1275,9 @@ $$\hat{\mathbf{e}}_G = \frac{\mathbf{v}}{|\mathbf{v}|}, \quad
 <details>
 <summary>📐 Equations of Motion</summary>
 <div>
-<p>The equation of motion for the ball:</p>
-$$m\ddot{\mathbf{x}} = -mg\hat{\mathbf{e}}_Z - \frac{1}{2}C_D \rho A v \mathbf{v} + \frac{1}{2}C_L \rho A v^2 (\hat{\boldsymbol{\omega}} \times \hat{\mathbf{v}})$$
-<p>where the first term is gravity, the second is drag, and the third is Magnus force. Numerical integration is performed using the 4th-order Runge-Kutta method with a 0.001-second time step.</p>
+<p>The equation of motion was introduced after Fig. 1; restated here for reference:</p>
+$$m\ddot{\mathbf{x}} = \underbrace{\color{#ffcc44}{-mg\hat{\mathbf{e}}_Z}}_{\color{#ffcc44}{\text{gravity}}} \underbrace{\color{#aaaaaa}{- \frac{1}{2}C_D \rho A {\color{#44ff44}v} {\color{#44ff44}\mathbf{v}}}}_{\color{#aaaaaa}{\text{drag}}} + \underbrace{\color{#4fc3f7}{\frac{1}{2}C_L \rho A {\color{#44ff44}v}^2 ({\color{#ff8a65}\hat{\boldsymbol{\omega}}} \times {\color{#44ff44}\hat{\mathbf{v}}})}}_{\color{#4fc3f7}{\text{Magnus force}}}$$
+<p>This simulator performs numerical integration using the 4th-order Runge-Kutta method with a 0.001-second time step.</p>
 </div>
 </details>
 
