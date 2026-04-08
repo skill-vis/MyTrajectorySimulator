@@ -714,7 +714,7 @@ $$C_L = \frac{c_2 \cdot S}{c_0 + c_1 \cdot S}$$
 
 <p>The gyro component $\omega_G$ is crucial for trajectory calculation, but MLB's public Statcast data does not include it. The <a href="../">simulator</a> on this site estimates the gyro component from public data to compute trajectories, which is one of its key features.</p>
 
-<p>T, S, and G are mutually <strong>orthogonal</strong>, forming the <strong>TSG coordinate system</strong> where the name order matches the right-hand cyclic order ($\hat{\mathbf{e}}_T \times \hat{\mathbf{e}}_S = \hat{\mathbf{e}}_G$). Any $\boldsymbol{\omega}$ can be uniquely decomposed as projections onto these three axes. Explore the relationship in the 3D widget below.</p>
+<p>T, S, and G are mutually <strong>orthogonal</strong>, forming the <strong>TSG coordinate system</strong> where the name order matches the right-hand cyclic order ($\hat{\mathbf{e}}_T \times \hat{\mathbf{e}}_S = \hat{\mathbf{e}}_G$). Any $\boldsymbol{\omega}$ can be uniquely decomposed as projections onto these three axes, with each component written as $\omega_T$, $\omega_S$, $\omega_G$. Explore the relationship in the 3D widget below.</p>
 
 <div style="background:#111;border-radius:8px;padding:16px;margin:20px 0;">
 <canvas id="bsg-axes-canvas" style="width:100%;height:420px;border-radius:8px;cursor:grab;"></canvas>
@@ -751,10 +751,10 @@ $$C_L = \frac{c_2 \cdot S}{c_0 + c_1 \cdot S}$$
 <p>In the TSG coordinate system, spin efficiency is defined as:</p>
 
 <div class="math-box">
-Spin Efficiency = $\frac{\sqrt{T^2 + S^2}}{\sqrt{T^2 + S^2 + G^2}} \times 100$ (%)
+Spin Efficiency = $\frac{\sqrt{\omega_T^2 + \omega_S^2}}{\sqrt{\omega_T^2 + \omega_S^2 + \omega_G^2}} \times 100$ (%)
 </div>
 
-<p>The numerator $\sqrt{T^2 + S^2}$ is the <strong>transverse spin</strong> (the spin component perpendicular to the velocity) — the amount of "effective spin" that generates Magnus force. The denominator is the total spin rate.</p>
+<p>The numerator $\sqrt{\omega_T^2 + \omega_S^2}$ is the <strong>transverse spin</strong> (the spin component perpendicular to the velocity) — the amount of "effective spin" that generates Magnus force. The denominator is the total spin rate.</p>
 
 <ul>
 <li><strong>Spin efficiency 100%</strong>: Zero gyrospin component. All spin contributes to movement (pure backspin, topspin, sidespin, etc.)</li>
