@@ -739,7 +739,7 @@ $$C_L = \frac{c_2 \cdot S}{c_0 + c_1 \cdot S}$$
 
 <p>ジャイロ成分 $\omega_G$ は投球軌道を左右する重要な成分だが、MLBのStatcast公開データにはこの成分が含まれていない。本サイトの<a href="../">シミュレータ</a>は、公開データからジャイロ成分を推定したうえで軌道計算を行っており、これが大きな特徴のひとつである。</p>
 
-<p>T, S, Gは互いに<strong>直交</strong>し、名前の並び順がそのまま右手系の巡回順（$\hat{\mathbf{e}}_T \times \hat{\mathbf{e}}_S = \hat{\mathbf{e}}_G$）となる<strong>TSG座標系</strong>を構成する。任意の $\boldsymbol{\omega}$ はこの3軸への射影として一意に分解でき、各成分を $\omega_T$, $\omega_S$, $\omega_G$ と書く。下の3Dウィジェットで確認しよう。</p>
+<p>T, S, Gは互いに<strong>直交</strong>し、名前の並び順がそのまま右手系の巡回順（$\hat{\mathbf{e}}_T \times \hat{\mathbf{e}}_S = \hat{\mathbf{e}}_G$）となる<strong>TSG座標系</strong>を構成する。任意の角速度ベクトル $\boldsymbol{\omega}$ はこの3軸への射影として一意に分解でき、各軸への成分をそれぞれ $\omega_T$, $\omega_S$, $\omega_G$ と書く。下の3Dウィジェットで確認しよう。</p>
 
 <div style="background:#111;border-radius:8px;padding:16px;margin:20px 0;">
 <canvas id="bsg-axes-canvas" style="width:100%;height:420px;border-radius:8px;cursor:grab;"></canvas>

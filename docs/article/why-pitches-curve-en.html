@@ -714,7 +714,7 @@ $$C_L = \frac{c_2 \cdot S}{c_0 + c_1 \cdot S}$$
 
 <p>The gyro component $\omega_G$ is crucial for trajectory calculation, but MLB's public Statcast data does not include it. The <a href="../">simulator</a> on this site estimates the gyro component from public data to compute trajectories, which is one of its key features.</p>
 
-<p>T, S, and G are mutually <strong>orthogonal</strong>, forming the <strong>TSG coordinate system</strong> where the name order matches the right-hand cyclic order ($\hat{\mathbf{e}}_T \times \hat{\mathbf{e}}_S = \hat{\mathbf{e}}_G$). Any $\boldsymbol{\omega}$ can be uniquely decomposed as projections onto these three axes, with each component written as $\omega_T$, $\omega_S$, $\omega_G$. Explore the relationship in the 3D widget below.</p>
+<p>T, S, and G are mutually <strong>orthogonal</strong>, forming the <strong>TSG coordinate system</strong> where the name order matches the right-hand cyclic order ($\hat{\mathbf{e}}_T \times \hat{\mathbf{e}}_S = \hat{\mathbf{e}}_G$). Any angular velocity vector $\boldsymbol{\omega}$ can be uniquely decomposed as projections onto these three axes, with each component written as $\omega_T$, $\omega_S$, $\omega_G$. Explore the relationship in the 3D widget below.</p>
 
 <div style="background:#111;border-radius:8px;padding:16px;margin:20px 0;">
 <canvas id="bsg-axes-canvas" style="width:100%;height:420px;border-radius:8px;cursor:grab;"></canvas>
