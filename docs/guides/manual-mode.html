@@ -347,7 +347,10 @@ ul.task-list li input[type="checkbox"] {
    
   <ul>
   <li><a href="#overview" id="toc-overview" class="nav-link active" data-scroll-target="#overview">Overview</a></li>
-  <li><a href="#parameters" id="toc-parameters" class="nav-link" data-scroll-target="#parameters">Parameters</a></li>
+  <li><a href="#parameters" id="toc-parameters" class="nav-link" data-scroll-target="#parameters">Parameters</a>
+  <ul class="collapse">
+  <li><a href="#advanced-options" id="toc-advanced-options" class="nav-link" data-scroll-target="#advanced-options">Advanced Options</a></li>
+  </ul></li>
   <li><a href="#release-position" id="toc-release-position" class="nav-link" data-scroll-target="#release-position">Release Position</a></li>
   <li><a href="#experimenting" id="toc-experimenting" class="nav-link" data-scroll-target="#experimenting">Experimenting</a>
   <ul class="collapse">
@@ -439,6 +442,32 @@ ul.task-list li input[type="checkbox"] {
 </tbody>
 </table>
 <p>Click <strong>Simulate</strong> to run the physics simulation with these values.</p>
+<section id="advanced-options" class="level3">
+<h3 class="anchored" data-anchor-id="advanced-options">Advanced Options</h3>
+<p>Below the spin sliders, additional controls are available:</p>
+<table class="caption-top table">
+<thead>
+<tr class="header">
+<th>Control</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><strong>C<sub>L</sub> Model</strong></td>
+<td>Lift coefficient model: <em>Nathan 2020 (exp)</em> (default) or <em>Rational (old)</em>. See <a href="../guides/statcast-mode.html#physics-model-options">Statcast Mode — Physics Model Options</a> for details.</td>
+</tr>
+<tr class="even">
+<td><strong>Fixed Cd</strong></td>
+<td>Override the drag coefficient with a constant value (leave blank for the Nathan speed-dependent model)</td>
+</tr>
+<tr class="odd">
+<td><strong>Fixed Cl</strong></td>
+<td>Override the lift coefficient with a constant value (leave blank for the model-based calculation)</td>
+</tr>
+</tbody>
+</table>
+</section>
 </section>
 <section id="release-position" class="level2">
 <h2 class="anchored" data-anchor-id="release-position">Release Position</h2>

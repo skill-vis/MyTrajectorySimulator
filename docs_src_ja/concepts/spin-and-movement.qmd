@@ -88,3 +88,42 @@ Spin efficiencyの定義はシンプルです：
 注意：BとSの軸は互いに直交していますが、どちらもGに対して正確には直交しません。BSG座標系は直交基底ではなく、**斜交基底**です。
 
 :::
+
+::: {.callout-note collapse="true" title="技術的な補足：揚力係数 C~L~(S) モデル"}
+
+マグナス力は**揚力係数** $C_L$ に依存し、これはスピンファクター $S = r\omega_T / v$ の関数です。
+
+シミュレータは2つのモデルをサポートしています：
+
+**Nathan (2020) 指数型モデル**（デフォルト）：
+$$C_L = 0.336\,[1 - e^{-6.041\,S}]$$
+
+風洞実験とモーションキャプチャの実験データへのフィット（Nathan, Am. J. Phys., 2008; 2020年更新）。高スピンファクターで $C_L \approx 0.336$ に飽和します。
+
+**有理関数型モデル**（旧モデル）：
+$$C_L = \frac{c_2 \, S}{0.583 + 2.333\,S}$$
+
+$c_2 = 1.045$（Statcastフィット値）または $c_2 = 1.12$（NathanのオリジナルExcel値）。高スピンでは $c_2 / 2.333 \approx 0.45\text{--}0.48$ に近づき、実験データを超えます。
+
+典型的なMLB投球（$S \approx 0.1\text{--}0.45$）では両モデルは近い結果を返しますが、高回転投球（$S > 0.5$）では指数型モデルのほうが実験的な飽和特性をよく追跡します。
+
+:::
+
+::: {.callout-note collapse="true" title="技術的な補足：Statcastデータからのtransverse spin推定"}
+
+Statcastはトータル回転数 $\omega$（Trackman/Hawk-Eye計測）を提供しますが、transverse成分とgyro成分の内訳は提供しません。シミュレータは軌道データから $\omega_T$ を2つの方法で推定できます：
+
+**PFX法**（デフォルト）：計測された投球変化量（pfx_x, pfx_z）からMagnus加速度を $a_M = 2\,|\text{pfx}| / t^2$ として推定し、$C_L(S)$ モデルを逆変換して $\omega_T$ を求めます。Transverse spinの方向は2Dで $\theta_\text{eff} = \text{atan2}(\text{pfx}_x, -\text{pfx}_z)$ と推定します。
+
+**加速度法**（Nathan 2020）：Statcastの加速度成分 (ax, ay, az) を直接使用します：
+
+1. 重力除去：$\vec{a}^* = \vec{a} - \vec{g}$
+2. 平均速度方向への射影でドラッグを除去：$\vec{a}_D = (\vec{a}^* \cdot \langle\hat{v}\rangle)\,\langle\hat{v}\rangle$
+3. Magnus加速度：$\vec{a}_M = \vec{a}^* - \vec{a}_D$
+4. 3D外積によるtransverse spin方向：$\hat{\omega}_T = \langle\hat{v}\rangle \times \hat{a}_M$
+
+加速度法はより厳密なドラッグ–Magnus分離と完全な3Dスピン軸推定を提供しますが、推定とシミュレーションでC~L~モデルが一致していれば、両方法とも同じ結果を返します。
+
+参考文献：A. M. Nathan, "Determining the 3D Spin Axis from Statcast Data" (2015, 2020年更新)
+
+:::

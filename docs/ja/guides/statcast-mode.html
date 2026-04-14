@@ -75,6 +75,35 @@ ul.task-list li input[type="checkbox"] {
   }
 }</script>
 
+  <script src="https://cdnjs.cloudflare.com/polyfill/v3/polyfill.min.js?features=es6"></script>
+  <script defer="" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js" type="text/javascript"></script>
+
+<script type="text/javascript">
+const typesetMath = (el) => {
+  if (window.MathJax) {
+    // MathJax Typeset
+    window.MathJax.typeset([el]);
+  } else if (window.katex) {
+    // KaTeX Render
+    var mathElements = el.getElementsByClassName("math");
+    var macros = [];
+    for (var i = 0; i < mathElements.length; i++) {
+      var texText = mathElements[i].firstChild;
+      if (mathElements[i].tagName == "SPAN" && texText && texText.data) {
+        window.katex.render(texText.data, mathElements[i], {
+          displayMode: mathElements[i].classList.contains('display'),
+          throwOnError: false,
+          macros: macros,
+          fleqn: false
+        });
+      }
+    }
+  }
+}
+window.Quarto = {
+  typesetMath
+};
+</script>
 
 <link rel="stylesheet" href="../styles.css">
 </head>
@@ -355,6 +384,11 @@ ul.task-list li input[type="checkbox"] {
   <li><a href="#複数球を選択" id="toc-複数球を選択" class="nav-link" data-scroll-target="#複数球を選択">複数球を選択</a></li>
   </ul></li>
   <li><a href="#表示される情報" id="toc-表示される情報" class="nav-link" data-scroll-target="#表示される情報">表示される情報</a></li>
+  <li><a href="#物理モデルオプション" id="toc-物理モデルオプション" class="nav-link" data-scroll-target="#物理モデルオプション">物理モデルオプション</a>
+  <ul class="collapse">
+  <li><a href="#cl-モデル" id="toc-cl-モデル" class="nav-link" data-scroll-target="#cl-モデル">C<sub>L</sub> モデル</a></li>
+  <li><a href="#accel-ω" id="toc-accel-ω" class="nav-link" data-scroll-target="#accel-ω">Accel ω</a></li>
+  </ul></li>
   <li><a href="#ヒント" id="toc-ヒント" class="nav-link" data-scroll-target="#ヒント">ヒント</a></li>
   </ul>
 </nav>
@@ -484,6 +518,74 @@ ul.task-list li input[type="checkbox"] {
 <li><strong>Spin movement</strong> — 回転による水平・垂直方向の変位（cm）</li>
 <li><strong>打者のストライクゾーン</strong> — 打者ごとに調整（Statcastのsz_top, sz_bot）</li>
 </ul>
+</section>
+<section id="物理モデルオプション" class="level2">
+<h2 class="anchored" data-anchor-id="物理モデルオプション">物理モデルオプション</h2>
+<p>投球リスト上部のツールバーに、シミュレーションの物理計算を制御するオプションがあります：</p>
+<section id="cl-モデル" class="level3">
+<h3 class="anchored" data-anchor-id="cl-モデル">C<sub>L</sub> モデル</h3>
+<p><strong>C<sub>L</sub> モデル</strong>セレクタは、軌道シミュレーションと回転効率推定の両方に使用される揚力係数モデルを決定します：</p>
+<table class="caption-top table">
+<colgroup>
+<col style="width: 28%">
+<col style="width: 25%">
+<col style="width: 46%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>選択肢</th>
+<th>モデル</th>
+<th>説明</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><strong>C<sub>L</sub> Nathan 2020</strong>（デフォルト）</td>
+<td><span class="math inline">\(C_L = 0.336\,[1 - e^{-6.041\,S}]\)</span></td>
+<td>Nathan (2020) の指数型フィット。風洞実験とモーションキャプチャデータに基づく</td>
+</tr>
+<tr class="even">
+<td><strong>C<sub>L</sub> Rational (old)</strong></td>
+<td><span class="math inline">\(C_L = 1.045\,S\,/\,(0.583 + 2.333\,S)\)</span></td>
+<td>旧有理関数型モデル</td>
+</tr>
+<tr class="odd">
+<td><strong>C<sub>L</sub> Rational cl2=1.12</strong></td>
+<td><span class="math inline">\(C_L = 1.12\,S\,/\,(0.583 + 2.333\,S)\)</span></td>
+<td>NathanのオリジナルExcelスプレッドシートの値</td>
+</tr>
+</tbody>
+</table>
+<p>ここで <span class="math inline">\(S = r\omega_T / v\)</span> はスピンファクターです。</p>
+<div class="callout callout-style-default callout-note callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+ノート
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>C<sub>L</sub> モデルは軌道積分とpfxからの回転効率推定の両方に影響します。シミュレータは常にこれらを一貫させ、同じモデルを両方に使用します。</p>
+</div>
+</div>
+</section>
+<section id="accel-ω" class="level3">
+<h3 class="anchored" data-anchor-id="accel-ω">Accel ω</h3>
+<p><strong>Accel ω</strong> チェックボックスは、角速度の推定方法を切り替えます：</p>
+<ul>
+<li><strong>オフ</strong>（デフォルト）：pfx（回転による変化量）からMagnus加速度を <span class="math inline">\(a_M = 2\,\text{pfx} / t^2\)</span> として推定し、xz平面でのpfx方向からtransverse spin軸を導きます。</li>
+<li><strong>オン</strong>：Nathan (2020) の加速度ベース手法を使用。Statcastの実測加速度 (ax, ay, az) からMagnus加速度を直接抽出します：
+<ol type="1">
+<li>重力を除去</li>
+<li>平均速度方向への射影でドラッグを分離</li>
+<li>残りがMagnus加速度（Nathan Eq. 6）</li>
+<li>Transverse spinの方向は3D外積 <span class="math inline">\(\langle\hat{v}\rangle \times \hat{a}_M\)</span> で計算（Nathan Eq. 10）</li>
+</ol></li>
+</ul>
+<p>加速度法はより厳密なドラッグ–Magnus分離を行うため、pfx法と比べて一般的に低い回転効率（より多くのジャイロスピン）を推定します。</p>
+</section>
 </section>
 <section id="ヒント" class="level2">
 <h2 class="anchored" data-anchor-id="ヒント">ヒント</h2>

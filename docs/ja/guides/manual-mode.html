@@ -347,7 +347,10 @@ ul.task-list li input[type="checkbox"] {
    
   <ul>
   <li><a href="#概要" id="toc-概要" class="nav-link active" data-scroll-target="#概要">概要</a></li>
-  <li><a href="#パラメータ" id="toc-パラメータ" class="nav-link" data-scroll-target="#パラメータ">パラメータ</a></li>
+  <li><a href="#パラメータ" id="toc-パラメータ" class="nav-link" data-scroll-target="#パラメータ">パラメータ</a>
+  <ul class="collapse">
+  <li><a href="#詳細オプション" id="toc-詳細オプション" class="nav-link" data-scroll-target="#詳細オプション">詳細オプション</a></li>
+  </ul></li>
   <li><a href="#リリース位置" id="toc-リリース位置" class="nav-link" data-scroll-target="#リリース位置">リリース位置</a></li>
   <li><a href="#実験してみよう" id="toc-実験してみよう" class="nav-link" data-scroll-target="#実験してみよう">実験してみよう</a>
   <ul class="collapse">
@@ -439,6 +442,32 @@ ul.task-list li input[type="checkbox"] {
 </tbody>
 </table>
 <p><strong>Simulate</strong> をクリックすると、これらの値で物理シミュレーションが実行されます。</p>
+<section id="詳細オプション" class="level3">
+<h3 class="anchored" data-anchor-id="詳細オプション">詳細オプション</h3>
+<p>回転スライダーの下に、追加のコントロールがあります：</p>
+<table class="caption-top table">
+<thead>
+<tr class="header">
+<th>コントロール</th>
+<th>説明</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><strong>C<sub>L</sub> Model</strong></td>
+<td>揚力係数モデル：<em>Nathan 2020 (exp)</em>（デフォルト）または <em>Rational (old)</em>。詳細は <a href="../guides/statcast-mode.html#物理モデルオプション">Statcast モード — 物理モデルオプション</a> を参照。</td>
+</tr>
+<tr class="even">
+<td><strong>Fixed Cd</strong></td>
+<td>抗力係数を固定値で上書き（空欄のままにすると、Nathanの速度依存モデルを使用）</td>
+</tr>
+<tr class="odd">
+<td><strong>Fixed Cl</strong></td>
+<td>揚力係数を固定値で上書き（空欄のままにすると、モデルベースの計算を使用）</td>
+</tr>
+</tbody>
+</table>
+</section>
 </section>
 <section id="リリース位置" class="level2">
 <h2 class="anchored" data-anchor-id="リリース位置">リリース位置</h2>

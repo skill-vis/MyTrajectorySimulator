@@ -24,6 +24,16 @@ Manual Input mode lets you control every parameter directly using sliders. This 
 
 Click **Simulate** to run the physics simulation with these values.
 
+### Advanced Options
+
+Below the spin sliders, additional controls are available:
+
+| Control | Description |
+|---------|-------------|
+| **C~L~ Model** | Lift coefficient model: *Nathan 2020 (exp)* (default) or *Rational (old)*. See [Statcast Mode — Physics Model Options](statcast-mode.qmd#physics-model-options) for details. |
+| **Fixed Cd** | Override the drag coefficient with a constant value (leave blank for the Nathan speed-dependent model) |
+| **Fixed Cl** | Override the lift coefficient with a constant value (leave blank for the model-based calculation) |
+
 ## Release Position
 
 The release position (x₀, y₀, z₀) is set based on the most recent Statcast pitch or the default values:

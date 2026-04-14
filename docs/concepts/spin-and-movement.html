@@ -554,6 +554,54 @@ window.Quarto = {
 </div>
 </div>
 </div>
+<div class="callout callout-style-default callout-note callout-titled" title="Technical detail: Lift coefficient C~L~(S) models">
+<div class="callout-header d-flex align-content-center collapsed" data-bs-toggle="collapse" data-bs-target=".callout-3-contents" aria-controls="callout-3" aria-expanded="false" aria-label="Toggle callout">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Note</span>Technical detail: Lift coefficient C<sub>L</sub>(S) models
+</div>
+<div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
+</div>
+<div id="callout-3" class="callout-3-contents callout-collapse collapse">
+<div class="callout-body-container callout-body">
+<p>The Magnus force depends on the <strong>lift coefficient</strong> <span class="math inline">\(C_L\)</span>, which is a function of the spin factor <span class="math inline">\(S = r\omega_T / v\)</span>.</p>
+<p>The simulator supports two models:</p>
+<p><strong>Nathan (2020) exponential model</strong> (default): <span class="math display">\[C_L = 0.336\,[1 - e^{-6.041\,S}]\]</span></p>
+<p>This is a fit to combined wind-tunnel and motion-capture experimental data (Nathan, Am. J. Phys., 2008; updated 2020). It saturates at <span class="math inline">\(C_L \approx 0.336\)</span> for high spin factors.</p>
+<p><strong>Rational function model</strong> (legacy): <span class="math display">\[C_L = \frac{c_2 \, S}{0.583 + 2.333\,S}\]</span></p>
+<p>where <span class="math inline">\(c_2 = 1.045\)</span> (Statcast-fitted) or <span class="math inline">\(c_2 = 1.12\)</span> (Nathan’s original Excel value). This model approaches <span class="math inline">\(c_2 / 2.333 \approx 0.45\text{--}0.48\)</span> at high spin, which exceeds the experimental data.</p>
+<p>For typical MLB pitches (<span class="math inline">\(S \approx 0.1\text{--}0.45\)</span>), the two models give similar results. The difference becomes significant for high-spin pitches (<span class="math inline">\(S &gt; 0.5\)</span>), where the exponential model better tracks the experimental saturation.</p>
+</div>
+</div>
+</div>
+<div class="callout callout-style-default callout-note callout-titled" title="Technical detail: Estimating transverse spin from Statcast data">
+<div class="callout-header d-flex align-content-center collapsed" data-bs-toggle="collapse" data-bs-target=".callout-4-contents" aria-controls="callout-4" aria-expanded="false" aria-label="Toggle callout">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Note</span>Technical detail: Estimating transverse spin from Statcast data
+</div>
+<div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
+</div>
+<div id="callout-4" class="callout-4-contents callout-collapse collapse">
+<div class="callout-body-container callout-body">
+<p>Statcast provides the total spin rate <span class="math inline">\(\omega\)</span> (from Trackman/Hawk-Eye) but not the breakdown into transverse and gyro components. The simulator estimates the transverse spin <span class="math inline">\(\omega_T\)</span> from the trajectory data using one of two methods:</p>
+<p><strong>PFX method</strong> (default): Uses the measured pitch deflection (pfx_x, pfx_z) to estimate the Magnus acceleration as <span class="math inline">\(a_M = 2\,|\text{pfx}| / t^2\)</span>, then inverts the <span class="math inline">\(C_L(S)\)</span> model to find <span class="math inline">\(\omega_T\)</span>. The transverse spin direction is estimated in 2D as <span class="math inline">\(\theta_\text{eff} = \text{atan2}(\text{pfx}_x, -\text{pfx}_z)\)</span>.</p>
+<p><strong>Acceleration method</strong> (Nathan 2020): Uses the Statcast acceleration components (ax, ay, az) directly:</p>
+<ol type="1">
+<li>Remove gravity: <span class="math inline">\(\vec{a}^* = \vec{a} - \vec{g}\)</span></li>
+<li>Remove drag by projecting along the mean velocity: <span class="math inline">\(\vec{a}_D = (\vec{a}^* \cdot \langle\hat{v}\rangle)\,\langle\hat{v}\rangle\)</span></li>
+<li>Magnus acceleration: <span class="math inline">\(\vec{a}_M = \vec{a}^* - \vec{a}_D\)</span></li>
+<li>Transverse spin direction via 3D cross product: <span class="math inline">\(\hat{\omega}_T = \langle\hat{v}\rangle \times \hat{a}_M\)</span></li>
+</ol>
+<p>The acceleration method provides more rigorous drag–Magnus separation and a full 3D spin axis estimate, but both methods give the same result when the C<sub>L</sub> model is consistent between estimation and simulation.</p>
+<p>Reference: A. M. Nathan, “Determining the 3D Spin Axis from Statcast Data” (2015, updated 2020).</p>
+</div>
+</div>
+</div>
 
 
 </section>

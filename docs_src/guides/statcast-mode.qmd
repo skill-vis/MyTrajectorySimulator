@@ -65,6 +65,39 @@ After simulation, the left panel shows:
 - **Spin movement** — horizontal and vertical displacement due to spin (cm)
 - **Batter's strike zone** — adjusted per batter (sz_top, sz_bot from Statcast)
 
+## Physics Model Options
+
+The toolbar above the pitch list includes options that control how the simulation physics are computed:
+
+### C~L~ Model
+
+The **C~L~ model** selector determines the lift coefficient model used for both the trajectory simulation and the spin efficiency estimation:
+
+| Option | Model | Description |
+|--------|-------|-------------|
+| **C~L~ Nathan 2020** (default) | $C_L = 0.336\,[1 - e^{-6.041\,S}]$ | Exponential fit from Nathan (2020), based on wind-tunnel and motion-capture experiments |
+| **C~L~ Rational (old)** | $C_L = 1.045\,S\,/\,(0.583 + 2.333\,S)$ | Legacy rational function model |
+| **C~L~ Rational cl2=1.12** | $C_L = 1.12\,S\,/\,(0.583 + 2.333\,S)$ | Nathan's original Excel spreadsheet value |
+
+where $S = r\omega_T / v$ is the spin factor.
+
+::: {.callout-note}
+The C~L~ model affects both the trajectory integration and the spin efficiency estimation from pfx data. The simulator ensures these are always consistent — the same model is used for both.
+:::
+
+### Accel ω
+
+The **Accel ω** checkbox switches the angular velocity estimation method:
+
+- **Off** (default): Uses pfx (spin-induced deflection) to estimate Magnus acceleration as $a_M = 2\,\text{pfx} / t^2$, and derives the transverse spin axis from pfx direction in the xz plane.
+- **On**: Uses the Nathan (2020) acceleration-based method. This extracts Magnus acceleration directly from Statcast's measured acceleration (ax, ay, az) by:
+  1. Removing gravity
+  2. Separating drag via projection along the mean velocity vector
+  3. The remainder is the Magnus acceleration (Nathan Eq. 6)
+  4. The transverse spin direction is computed as the 3D cross product $\langle\hat{v}\rangle \times \hat{a}_M$ (Nathan Eq. 10)
+
+The acceleration method provides a more rigorous drag–Magnus separation, which typically results in lower spin efficiency estimates (more gyrospin) compared to the pfx method.
+
 ## Tips
 
 - The **batter silhouette** and **3D batter figure** automatically adjust based on the batter's handedness (R/L) from the Statcast data

@@ -554,6 +554,54 @@ window.Quarto = {
 </div>
 </div>
 </div>
+<div class="callout callout-style-default callout-note callout-titled" title="技術的な補足：揚力係数 C~L~(S) モデル">
+<div class="callout-header d-flex align-content-center collapsed" data-bs-toggle="collapse" data-bs-target=".callout-3-contents" aria-controls="callout-3" aria-expanded="false" aria-label="Toggle callout">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">ノート</span>技術的な補足：揚力係数 C<sub>L</sub>(S) モデル
+</div>
+<div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
+</div>
+<div id="callout-3" class="callout-3-contents callout-collapse collapse">
+<div class="callout-body-container callout-body">
+<p>マグナス力は<strong>揚力係数</strong> <span class="math inline">\(C_L\)</span> に依存し、これはスピンファクター <span class="math inline">\(S = r\omega_T / v\)</span> の関数です。</p>
+<p>シミュレータは2つのモデルをサポートしています：</p>
+<p><strong>Nathan (2020) 指数型モデル</strong>（デフォルト）： <span class="math display">\[C_L = 0.336\,[1 - e^{-6.041\,S}]\]</span></p>
+<p>風洞実験とモーションキャプチャの実験データへのフィット（Nathan, Am. J. Phys., 2008; 2020年更新）。高スピンファクターで <span class="math inline">\(C_L \approx 0.336\)</span> に飽和します。</p>
+<p><strong>有理関数型モデル</strong>（旧モデル）： <span class="math display">\[C_L = \frac{c_2 \, S}{0.583 + 2.333\,S}\]</span></p>
+<p><span class="math inline">\(c_2 = 1.045\)</span>（Statcastフィット値）または <span class="math inline">\(c_2 = 1.12\)</span>（NathanのオリジナルExcel値）。高スピンでは <span class="math inline">\(c_2 / 2.333 \approx 0.45\text{--}0.48\)</span> に近づき、実験データを超えます。</p>
+<p>典型的なMLB投球（<span class="math inline">\(S \approx 0.1\text{--}0.45\)</span>）では両モデルは近い結果を返しますが、高回転投球（<span class="math inline">\(S &gt; 0.5\)</span>）では指数型モデルのほうが実験的な飽和特性をよく追跡します。</p>
+</div>
+</div>
+</div>
+<div class="callout callout-style-default callout-note callout-titled" title="技術的な補足：Statcastデータからのtransverse spin推定">
+<div class="callout-header d-flex align-content-center collapsed" data-bs-toggle="collapse" data-bs-target=".callout-4-contents" aria-controls="callout-4" aria-expanded="false" aria-label="Toggle callout">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">ノート</span>技術的な補足：Statcastデータからのtransverse spin推定
+</div>
+<div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
+</div>
+<div id="callout-4" class="callout-4-contents callout-collapse collapse">
+<div class="callout-body-container callout-body">
+<p>Statcastはトータル回転数 <span class="math inline">\(\omega\)</span>（Trackman/Hawk-Eye計測）を提供しますが、transverse成分とgyro成分の内訳は提供しません。シミュレータは軌道データから <span class="math inline">\(\omega_T\)</span> を2つの方法で推定できます：</p>
+<p><strong>PFX法</strong>（デフォルト）：計測された投球変化量（pfx_x, pfx_z）からMagnus加速度を <span class="math inline">\(a_M = 2\,|\text{pfx}| / t^2\)</span> として推定し、<span class="math inline">\(C_L(S)\)</span> モデルを逆変換して <span class="math inline">\(\omega_T\)</span> を求めます。Transverse spinの方向は2Dで <span class="math inline">\(\theta_\text{eff} = \text{atan2}(\text{pfx}_x, -\text{pfx}_z)\)</span> と推定します。</p>
+<p><strong>加速度法</strong>（Nathan 2020）：Statcastの加速度成分 (ax, ay, az) を直接使用します：</p>
+<ol type="1">
+<li>重力除去：<span class="math inline">\(\vec{a}^* = \vec{a} - \vec{g}\)</span></li>
+<li>平均速度方向への射影でドラッグを除去：<span class="math inline">\(\vec{a}_D = (\vec{a}^* \cdot \langle\hat{v}\rangle)\,\langle\hat{v}\rangle\)</span></li>
+<li>Magnus加速度：<span class="math inline">\(\vec{a}_M = \vec{a}^* - \vec{a}_D\)</span></li>
+<li>3D外積によるtransverse spin方向：<span class="math inline">\(\hat{\omega}_T = \langle\hat{v}\rangle \times \hat{a}_M\)</span></li>
+</ol>
+<p>加速度法はより厳密なドラッグ–Magnus分離と完全な3Dスピン軸推定を提供しますが、推定とシミュレーションでC<sub>L</sub>モデルが一致していれば、両方法とも同じ結果を返します。</p>
+<p>参考文献：A. M. Nathan, “Determining the 3D Spin Axis from Statcast Data” (2015, 2020年更新)</p>
+</div>
+</div>
+</div>
 
 
 </section>

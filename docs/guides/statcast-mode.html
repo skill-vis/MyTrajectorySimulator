@@ -75,6 +75,35 @@ ul.task-list li input[type="checkbox"] {
   }
 }</script>
 
+  <script src="https://cdnjs.cloudflare.com/polyfill/v3/polyfill.min.js?features=es6"></script>
+  <script defer="" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js" type="text/javascript"></script>
+
+<script type="text/javascript">
+const typesetMath = (el) => {
+  if (window.MathJax) {
+    // MathJax Typeset
+    window.MathJax.typeset([el]);
+  } else if (window.katex) {
+    // KaTeX Render
+    var mathElements = el.getElementsByClassName("math");
+    var macros = [];
+    for (var i = 0; i < mathElements.length; i++) {
+      var texText = mathElements[i].firstChild;
+      if (mathElements[i].tagName == "SPAN" && texText && texText.data) {
+        window.katex.render(texText.data, mathElements[i], {
+          displayMode: mathElements[i].classList.contains('display'),
+          throwOnError: false,
+          macros: macros,
+          fleqn: false
+        });
+      }
+    }
+  }
+}
+window.Quarto = {
+  typesetMath
+};
+</script>
 
 <link rel="stylesheet" href="../styles.css">
 </head>
@@ -355,6 +384,11 @@ ul.task-list li input[type="checkbox"] {
   <li><a href="#multiple-pitches" id="toc-multiple-pitches" class="nav-link" data-scroll-target="#multiple-pitches">Multiple pitches</a></li>
   </ul></li>
   <li><a href="#what-you-get" id="toc-what-you-get" class="nav-link" data-scroll-target="#what-you-get">What You Get</a></li>
+  <li><a href="#physics-model-options" id="toc-physics-model-options" class="nav-link" data-scroll-target="#physics-model-options">Physics Model Options</a>
+  <ul class="collapse">
+  <li><a href="#cl-model" id="toc-cl-model" class="nav-link" data-scroll-target="#cl-model">C<sub>L</sub> Model</a></li>
+  <li><a href="#accel-ω" id="toc-accel-ω" class="nav-link" data-scroll-target="#accel-ω">Accel ω</a></li>
+  </ul></li>
   <li><a href="#tips" id="toc-tips" class="nav-link" data-scroll-target="#tips">Tips</a></li>
   </ul>
 </nav>
@@ -484,6 +518,74 @@ Tip
 <li><strong>Spin movement</strong> — horizontal and vertical displacement due to spin (cm)</li>
 <li><strong>Batter’s strike zone</strong> — adjusted per batter (sz_top, sz_bot from Statcast)</li>
 </ul>
+</section>
+<section id="physics-model-options" class="level2">
+<h2 class="anchored" data-anchor-id="physics-model-options">Physics Model Options</h2>
+<p>The toolbar above the pitch list includes options that control how the simulation physics are computed:</p>
+<section id="cl-model" class="level3">
+<h3 class="anchored" data-anchor-id="cl-model">C<sub>L</sub> Model</h3>
+<p>The <strong>C<sub>L</sub> model</strong> selector determines the lift coefficient model used for both the trajectory simulation and the spin efficiency estimation:</p>
+<table class="caption-top table">
+<colgroup>
+<col style="width: 28%">
+<col style="width: 25%">
+<col style="width: 46%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>Option</th>
+<th>Model</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><strong>C<sub>L</sub> Nathan 2020</strong> (default)</td>
+<td><span class="math inline">\(C_L = 0.336\,[1 - e^{-6.041\,S}]\)</span></td>
+<td>Exponential fit from Nathan (2020), based on wind-tunnel and motion-capture experiments</td>
+</tr>
+<tr class="even">
+<td><strong>C<sub>L</sub> Rational (old)</strong></td>
+<td><span class="math inline">\(C_L = 1.045\,S\,/\,(0.583 + 2.333\,S)\)</span></td>
+<td>Legacy rational function model</td>
+</tr>
+<tr class="odd">
+<td><strong>C<sub>L</sub> Rational cl2=1.12</strong></td>
+<td><span class="math inline">\(C_L = 1.12\,S\,/\,(0.583 + 2.333\,S)\)</span></td>
+<td>Nathan’s original Excel spreadsheet value</td>
+</tr>
+</tbody>
+</table>
+<p>where <span class="math inline">\(S = r\omega_T / v\)</span> is the spin factor.</p>
+<div class="callout callout-style-default callout-note callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+Note
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>The C<sub>L</sub> model affects both the trajectory integration and the spin efficiency estimation from pfx data. The simulator ensures these are always consistent — the same model is used for both.</p>
+</div>
+</div>
+</section>
+<section id="accel-ω" class="level3">
+<h3 class="anchored" data-anchor-id="accel-ω">Accel ω</h3>
+<p>The <strong>Accel ω</strong> checkbox switches the angular velocity estimation method:</p>
+<ul>
+<li><strong>Off</strong> (default): Uses pfx (spin-induced deflection) to estimate Magnus acceleration as <span class="math inline">\(a_M = 2\,\text{pfx} / t^2\)</span>, and derives the transverse spin axis from pfx direction in the xz plane.</li>
+<li><strong>On</strong>: Uses the Nathan (2020) acceleration-based method. This extracts Magnus acceleration directly from Statcast’s measured acceleration (ax, ay, az) by:
+<ol type="1">
+<li>Removing gravity</li>
+<li>Separating drag via projection along the mean velocity vector</li>
+<li>The remainder is the Magnus acceleration (Nathan Eq. 6)</li>
+<li>The transverse spin direction is computed as the 3D cross product <span class="math inline">\(\langle\hat{v}\rangle \times \hat{a}_M\)</span> (Nathan Eq. 10)</li>
+</ol></li>
+</ul>
+<p>The acceleration method provides a more rigorous drag–Magnus separation, which typically results in lower spin efficiency estimates (more gyrospin) compared to the pfx method.</p>
+</section>
 </section>
 <section id="tips" class="level2">
 <h2 class="anchored" data-anchor-id="tips">Tips</h2>
