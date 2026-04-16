@@ -708,6 +708,16 @@ const canvas = document.getElementById('c');
 const renderer = new THREE.WebGLRenderer({canvas, antialias: true, preserveDrawingBuffer: true});
 renderer.setClearColor(0x1a1a2e);
 
+let _contextLost = false;
+canvas.addEventListener('webglcontextlost', e => {
+    e.preventDefault();
+    _contextLost = true;
+});
+canvas.addEventListener('webglcontextrestored', () => {
+    _contextLost = false;
+    requestAnimationFrame(animate);
+});
+
 const scene = new THREE.Scene();
 const camera = new THREE.PerspectiveCamera(40, 1, 0.1, 100);
 
@@ -4475,7 +4485,7 @@ function startRecording(mode) {
     if (ballMesh && animPoints.length > 0) {
         ballMesh.position.copy(animPoints[0]);
     }
-    renderer.render(scene, camera);
+    if (!_contextLost) renderer.render(scene, camera);
     compositeFrame();
 
     mediaRecorder.start();
@@ -4521,6 +4531,7 @@ function compositeFrame() {
 // Animation loop
 // =========================================================================
 function animate() {
+    if (_contextLost) return;
     requestAnimationFrame(animate);
     if (animating && !manualScrub && animPoints.length > 0) {
         let done = false;
@@ -4648,7 +4659,7 @@ function animate() {
             }
             // Auto-stop recording when animation ends
             if (isRecording) {
-                renderer.render(scene, camera);
+                if (!_contextLost) renderer.render(scene, camera);
                 compositeFrame();
                 stopRecording();
                 return;
@@ -4664,7 +4675,7 @@ function animate() {
             updateCamera();  // maintain pitcher-facing view
         }
     }
-    renderer.render(scene, camera);
+    if (!_contextLost) renderer.render(scene, camera);
     compositeFrame();
 }
 

@@ -96,9 +96,9 @@ body { background:#1a1a2e; color:#e0e0e0; font-family:'Segoe UI',sans-serif; ove
     <div class="section">
       <h2>Display</h2>
       <div class="toggle-row"><input type="checkbox" id="chk-trajectory" checked><label for="chk-trajectory">Ball Trajectory</label></div>
-      <div class="toggle-row"><input type="checkbox" id="chk-force" checked><label for="chk-force">Force Vectors</label></div>
-      <div class="toggle-row"><input type="checkbox" id="chk-moment"><label for="chk-moment">Torque Vectors</label></div>
-      <div class="toggle-row"><input type="checkbox" id="chk-angular-vel" checked><label for="chk-angular-vel">Angular Velocity</label></div>
+      <div class="toggle-row"><input type="checkbox" id="chk-force" checked><label for="chk-force">Force Vector</label></div>
+      <div class="toggle-row"><input type="checkbox" id="chk-moment"><label for="chk-moment">Torque Vector</label></div>
+      <div class="toggle-row"><input type="checkbox" id="chk-angular-vel" checked><label for="chk-angular-vel">Angular Velocity Vector</label></div>
       <div class="toggle-row"><input type="checkbox" id="chk-poa" checked><label for="chk-poa">Point of Action</label></div>
       <div class="toggle-row"><input type="checkbox" id="chk-sim" checked><label for="chk-sim">Nathan Trajectory</label></div>
       <div class="toggle-row"><input type="checkbox" id="chk-nospin" checked><label for="chk-nospin">No-Spin Trajectory</label></div>
@@ -113,7 +113,7 @@ body { background:#1a1a2e; color:#e0e0e0; font-family:'Segoe UI',sans-serif; ove
           <span style="display:inline-block; width:18px; height:3px; background:#ffaa00; position:relative;">
             <span style="position:absolute; right:-4px; top:-3px; width:0; height:0; border-left:5px solid #ffaa00; border-top:3px solid transparent; border-bottom:3px solid transparent;"></span>
           </span>
-          <span style="color:#ffaa00;">Angular Velocity</span>
+          <span style="color:#ffaa00;">Angular Velocity Vector</span>
           <span style="color:#666;">&#969;</span>
         </div>
         <div style="display:flex; align-items:center; gap:6px;">
@@ -310,9 +310,9 @@ function switchToMocapMode() {
     if (simAvArrow) simAvArrow.visible = false;
 }
 
-function switchToSimMode() {
+function switchToSimMode(keepPlaying = false) {
     activeMode = 'sim';
-    playing = false;
+    if (!keepPlaying) playing = false;
     if (sessionData) {
         animFrame = releaseLocalFrame;
         updateDisplay(releaseLocalFrame);
@@ -322,6 +322,8 @@ function switchToSimMode() {
 
 // 3D objects
 let ballMesh, trajectoryLine, simTrajectoryLine, poaTrajectoryLine, poaTrajectoryDots;
+let poaOffsets = null;  // pre-computed POA offsets in Three.js coords [{x,y,z}, ...]
+let poaFirstValidFrame = 0, poaLastValidFrame = 0;  // frame range where POA trail is shown
 let forceArrow, momentArrow, avArrow, poaDot;
 let curvatureDot = null, curvatureLine = null;
 let releaseMarker = null;
@@ -1072,6 +1074,52 @@ async function loadSession(sessionId) {
     document.getElementById('info-spin').textContent = (sessionData.summary?.spin_rate_rpm?.toFixed(0) || '-') + ' rpm';
     document.getElementById('info-frames').textContent = sessionData.frames.ball_center.length;
 
+    // Pre-compute POA offsets in Three.js coords (dynamic spin start to release)
+    // point_of_action/force/moment arrays are shorter than ball_center.
+    // poaIndexOffset maps ball_center index to point_of_action index:
+    //   point_of_action[i - poaIndexOffset] corresponds to ball_center[i]
+    poaOffsets = null;
+    poaTrajectoryLine.visible = false;
+    poaTrajectoryDots.visible = false;
+    poaTrajectoryLine.geometry.dispose();
+    poaTrajectoryLine.geometry = new THREE.BufferGeometry();
+    poaTrajectoryDots.geometry.dispose();
+    poaTrajectoryDots.geometry = new THREE.BufferGeometry();
+    poaFirstValidFrame = 0;
+    poaLastValidFrame = 0;
+    if (f.point_of_action) {
+        // dynamicSpinStart, release_frame, and point_of_action all use the same index as ball_center
+        const bcStart = Math.max(0, dynamicSpinStart);
+        const bcEnd = sessionData.release_frame != null
+            ? Math.min(sessionData.release_frame + 1, f.ball_center.length)
+            : f.ball_center.length;
+        const offsets = [];
+        let firstValid = -1, lastValid = -1;
+        for (let i = bcStart; i < bcEnd; i++) {
+            if (i >= f.point_of_action.length) continue;
+            const pa = f.point_of_action[i];
+            if (Math.abs(pa[0]) + Math.abs(pa[1]) + Math.abs(pa[2]) > 1e-6) {
+                offsets.push(mcDirToThree(pa));
+                if (firstValid < 0) firstValid = i;
+                lastValid = i;
+            }
+        }
+        if (offsets.length > 0) {
+            poaOffsets = offsets;
+            poaFirstValidFrame = firstValid;
+            poaLastValidFrame = lastValid;
+            const n = offsets.length;
+            const buf1 = new Float32Array(n * 3);
+            const buf2 = new Float32Array(n * 3);
+            const geo = new THREE.BufferGeometry();
+            geo.setAttribute('position', new THREE.BufferAttribute(buf1, 3));
+            poaTrajectoryLine.geometry = geo;
+            const geo2 = new THREE.BufferGeometry();
+            geo2.setAttribute('position', new THREE.BufferAttribute(buf2, 3));
+            poaTrajectoryDots.geometry = geo2;
+        }
+    }
+
     // Build trajectory line
     const pts = sessionData.frames.ball_center.map(p => mcToThree(p));
     trajectoryLine.geometry.dispose();
@@ -1465,24 +1513,23 @@ function updateDisplay(frame) {
     // Visibility toggles
     trajectoryLine.visible = document.getElementById('chk-trajectory').checked;
     simTrajectoryLine.visible = document.getElementById('chk-sim').checked;
-    // POA trajectory on ball surface (Ball Zoom mode only, dynamic spin start to release)
-    const showPoaTrail = viewMode === 'ball' && document.getElementById('chk-poa').checked;
-    if (showPoaTrail && f.point_of_action) {
-        const poaStart = Math.max(0, dynamicSpinStart);
-        const poaEnd = Math.min(f.point_of_action.length,
-            sessionData.release_frame != null ? sessionData.release_frame + 1 : f.point_of_action.length);
-        const poaPts = [];
-        for (let i = poaStart; i < poaEnd; i++) {
-            const pa = f.point_of_action[i];
-            if (Math.abs(pa[0]) + Math.abs(pa[1]) + Math.abs(pa[2]) > 1e-6) {
-                poaPts.push(pos.clone().add(mcDirToThree(pa)));
-            }
+    // POA trajectory on ball surface (dynamic spin start to release, ball_center index)
+    const showPoaTrail = document.getElementById('chk-poa').checked
+        && frame >= poaFirstValidFrame && frame <= poaLastValidFrame;
+    if (showPoaTrail && poaOffsets) {
+        // Update buffer positions: current ball pos + pre-computed offsets
+        const attr = poaTrajectoryLine.geometry.getAttribute('position');
+        const attr2 = poaTrajectoryDots.geometry.getAttribute('position');
+        for (let i = 0; i < poaOffsets.length; i++) {
+            const ox = pos.x + poaOffsets[i].x, oy = pos.y + poaOffsets[i].y, oz = pos.z + poaOffsets[i].z;
+            attr.array[i * 3] = ox; attr.array[i * 3 + 1] = oy; attr.array[i * 3 + 2] = oz;
+            attr2.array[i * 3] = ox; attr2.array[i * 3 + 1] = oy; attr2.array[i * 3 + 2] = oz;
         }
-        poaTrajectoryLine.geometry.dispose();
-        poaTrajectoryLine.geometry = new THREE.BufferGeometry().setFromPoints(poaPts);
+        attr.needsUpdate = true;
+        attr2.needsUpdate = true;
+        poaTrajectoryLine.geometry.computeBoundingSphere();
+        poaTrajectoryDots.geometry.computeBoundingSphere();
         poaTrajectoryLine.visible = true;
-        poaTrajectoryDots.geometry.dispose();
-        poaTrajectoryDots.geometry = new THREE.BufferGeometry().setFromPoints(poaPts);
         poaTrajectoryDots.visible = true;
     } else {
         poaTrajectoryLine.visible = false;
@@ -1691,7 +1738,7 @@ function animate(timestamp) {
                     // Reached release: seamlessly switch to sim mode
                     animFrame = releaseLocalFrame;
                     if (simTrajectory) {
-                        switchToSimMode();
+                        switchToSimMode(true);
                         simFrame = SIM_SKIP;
                         updateSimDisplay(simFrame);
                     } else {
