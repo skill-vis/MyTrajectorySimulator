@@ -1,0 +1,1933 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mocap Pitch Viewer</title>
+
+<!-- OGP / Twitter Card -->
+<meta property="og:title" content="Mocap Pitch Viewer — 3D Ball Dynamics">
+<meta property="og:description" content="OptiTrack motion capture ball dynamics: force, angular velocity, and Nathan trajectory simulation.">
+<meta property="og:image" content="https://baseball.skill-vis.com/static/images/point_of_force.png">
+<meta property="og:url" content="https://baseball.skill-vis.com/mocap">
+<meta property="og:type" content="website">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Mocap Pitch Viewer — 3D Ball Dynamics">
+<meta name="twitter:description" content="OptiTrack motion capture ball dynamics: force, angular velocity, and Nathan trajectory simulation.">
+<meta name="twitter:image" content="https://baseball.skill-vis.com/static/images/point_of_force.png">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<style>
+* { margin:0; padding:0; box-sizing:border-box; }
+body { background:#1a1a2e; color:#e0e0e0; font-family:'Segoe UI',sans-serif; overflow:hidden; }
+
+/* --- Layout --- */
+#container { display:flex; height:100vh; }
+#sidebar { width:280px; padding:12px; overflow-y:auto; background:#16213e; border-right:1px solid #333; flex-shrink:0; }
+#main { flex:1; display:flex; flex-direction:column; position:relative; overflow:hidden; }
+#canvas-wrap { flex:1; position:relative; min-height:0; }
+#canvas-wrap canvas { display:block; width:100%; height:100%; }
+#controls { height:48px; flex-shrink:0; display:flex; align-items:center; gap:8px; padding:0 12px; background:#0f3460; }
+#graph-section { flex-shrink:0; background:#16213e; border-top:1px solid #333; }
+#graph-toggle { display:flex; align-items:center; justify-content:space-between; padding:2px 12px; background:#0a2a50; cursor:pointer; user-select:none; }
+#graph-toggle span { font-size:11px; color:#888; }
+#graph-toggle .arrow { font-size:13px; color:#e94560; }
+#graphs { height:180px; display:flex; }
+#graphs canvas { flex:1; }
+#graphs.collapsed { display:none; }
+
+/* --- Sidebar --- */
+#sidebar h2 { font-size:14px; color:#e94560; margin-bottom:8px; }
+.info-row { display:flex; justify-content:space-between; font-size:12px; padding:2px 0; }
+.info-label { color:#888; }
+.info-value { color:#fff; font-weight:bold; }
+.section { margin-bottom:12px; padding-bottom:8px; border-bottom:1px solid #333; }
+.toggle-row { display:flex; align-items:center; gap:6px; font-size:12px; padding:2px 0; }
+.toggle-row input { accent-color:#e94560; }
+#session-select { width:100%; padding:4px; background:#0f3460; color:#fff; border:1px solid #555; border-radius:4px; font-size:12px; }
+
+/* --- Controls --- */
+#controls button { padding:4px 12px; background:#e94560; color:#fff; border:none; border-radius:4px; cursor:pointer; font-size:13px; }
+#controls button:hover { background:#c73650; }
+#slider-wrap { flex:1; position:relative; display:flex; align-items:center; }
+#time-slider { width:100%; accent-color:#e94560; }
+#release-mark { position:absolute; top:-2px; width:2px; height:24px; background:#ffff00; pointer-events:none; border-radius:1px; display:none; }
+#release-mark::after { content:'R'; position:absolute; top:-13px; left:-4px; font-size:9px; color:#ffff00; font-weight:bold; }
+#time-label { font-size:12px; min-width:100px; text-align:right; }
+
+/* --- Loading overlay --- */
+#loading { position:fixed; inset:0; background:rgba(0,0,0,0.8); display:flex; align-items:center; justify-content:center; z-index:999; font-size:18px; }
+#loading.hidden { display:none; }
+</style>
+</head>
+<body>
+
+<div id="loading">Loading session...</div>
+
+<div id="container">
+  <div id="sidebar">
+    <div class="section">
+      <h2>Session</h2>
+      <select id="session-select"><option value="">-- Select --</option></select>
+    </div>
+    <div class="section" id="info-panel">
+      <h2>Info</h2>
+      <div class="info-row"><span class="info-label">Player</span><span class="info-value" id="info-player">-</span></div>
+      <div class="info-row"><span class="info-label">Pitch Type</span><span class="info-value" id="info-pitch">-</span></div>
+      <div class="info-row"><span class="info-label">Speed</span><span class="info-value" id="info-speed">-</span></div>
+      <div class="info-row"><span class="info-label">Spin Rate</span><span class="info-value" id="info-spin">-</span></div>
+      <div class="info-row"><span class="info-label">Frames</span><span class="info-value" id="info-frames">-</span></div>
+    </div>
+    <div class="section">
+      <h2>View Mode</h2>
+      <div style="display:flex; gap:4px; margin-bottom:6px;">
+        <button id="btn-view-field" class="view-btn active" style="flex:1; padding:4px; font-size:11px; background:#e94560; color:#fff; border:none; border-radius:4px; cursor:pointer;">Field</button>
+        <button id="btn-view-ball" class="view-btn" style="flex:1; padding:4px; font-size:11px; background:#333; color:#fff; border:none; border-radius:4px; cursor:pointer;">Ball Zoom</button>
+      </div>
+      <div id="ball-zoom-opts" style="display:none;">
+        <div class="info-row"><span class="info-label">Distance</span></div>
+        <input type="range" id="ball-zoom-dist" min="0.05" max="5.0" step="0.01" value="0.225" style="width:100%">
+      </div>
+      <div style="display:flex; gap:4px; margin-top:6px;">
+        <button id="btn-cam-top" style="flex:1; padding:4px; font-size:11px; background:#333; color:#fff; border:none; border-radius:4px; cursor:pointer;">Top</button>
+        <button id="btn-cam-side" style="flex:1; padding:4px; font-size:11px; background:#333; color:#fff; border:none; border-radius:4px; cursor:pointer;">Side</button>
+        <button id="btn-cam-rear" style="flex:1; padding:4px; font-size:11px; background:#333; color:#fff; border:none; border-radius:4px; cursor:pointer;">Rear</button>
+      </div>
+    </div>
+    <div class="section">
+      <h2>Display</h2>
+      <div class="toggle-row"><input type="checkbox" id="chk-trajectory" checked><label for="chk-trajectory">Ball Trajectory</label></div>
+      <div class="toggle-row"><input type="checkbox" id="chk-force" checked><label for="chk-force">Force Vectors</label></div>
+      <div class="toggle-row"><input type="checkbox" id="chk-moment"><label for="chk-moment">Torque Vectors</label></div>
+      <div class="toggle-row"><input type="checkbox" id="chk-angular-vel" checked><label for="chk-angular-vel">Angular Velocity</label></div>
+      <div class="toggle-row"><input type="checkbox" id="chk-poa" checked><label for="chk-poa">Point of Action</label></div>
+      <div class="toggle-row"><input type="checkbox" id="chk-sim" checked><label for="chk-sim">Nathan Trajectory</label></div>
+      <div class="toggle-row"><input type="checkbox" id="chk-nospin" checked><label for="chk-nospin">No-Spin Trajectory</label></div>
+      <div class="toggle-row"><input type="checkbox" id="chk-magnus" checked><label for="chk-magnus">Magnus Force</label></div>
+      <div class="toggle-row"><input type="checkbox" id="chk-curvature" checked><label for="chk-curvature">Curvature Center</label></div>
+      <div class="toggle-row"><input type="checkbox" id="chk-axes" checked><label for="chk-axes">Coordinate Axes</label></div>
+    </div>
+    <div class="section">
+      <h2>Legend</h2>
+      <div style="font-size:11px; line-height:1.7;">
+        <div style="display:flex; align-items:center; gap:6px;">
+          <span style="display:inline-block; width:18px; height:3px; background:#ffaa00; position:relative;">
+            <span style="position:absolute; right:-4px; top:-3px; width:0; height:0; border-left:5px solid #ffaa00; border-top:3px solid transparent; border-bottom:3px solid transparent;"></span>
+          </span>
+          <span style="color:#ffaa00;">Angular Velocity</span>
+          <span style="color:#666;">&#969;</span>
+        </div>
+        <div style="display:flex; align-items:center; gap:6px;">
+          <span style="display:inline-block; width:18px; height:3px; background:#e94560; position:relative;">
+            <span style="position:absolute; right:-4px; top:-3px; width:0; height:0; border-left:5px solid #e94560; border-top:3px solid transparent; border-bottom:3px solid transparent;"></span>
+          </span>
+          <span style="color:#e94560;">Force</span>
+          <span style="color:#666;">F</span>
+        </div>
+        <div style="display:flex; align-items:center; gap:6px;">
+          <span style="display:inline-block; width:18px; height:3px; background:#00cc88; position:relative;">
+            <span style="position:absolute; right:-4px; top:-3px; width:0; height:0; border-left:5px solid #00cc88; border-top:3px solid transparent; border-bottom:3px solid transparent;"></span>
+          </span>
+          <span style="color:#00cc88;">Torque</span>
+          <span style="color:#666;">M</span>
+        </div>
+        <div style="display:flex; align-items:center; gap:6px;">
+          <span style="display:inline-block; width:6px; height:6px; border-radius:50%; background:#ff0000;"></span>
+          <span style="color:#ff0000;">Point of Action</span>
+          <span style="color:#666;">(force origin)</span>
+        </div>
+        <div style="display:flex; align-items:center; gap:6px;">
+          <span style="display:inline-block; width:6px; height:6px; border-radius:50%; background:#88ffff;"></span>
+          <span style="color:#88ffff;">Curvature Center</span>
+          <span style="color:#666;">R<sub>c</sub></span>
+        </div>
+      </div>
+    </div>
+    <div class="section">
+      <h2>Vectors / Ball</h2>
+      <div class="info-row"><span class="info-label">Force Scale</span></div>
+      <input type="range" id="scale-force" min="0.1" max="5" step="0.1" value="1" style="width:100%">
+      <div class="info-row"><span class="info-label">Torque Scale</span></div>
+      <input type="range" id="scale-moment" min="0.1" max="5" step="0.1" value="1" style="width:100%">
+      <div class="info-row"><span class="info-label">Ang.Vel Scale</span></div>
+      <input type="range" id="scale-av" min="0.1" max="10" step="0.1" value="1" style="width:100%">
+      <div class="info-row"><span class="info-label">Ball Opacity</span></div>
+      <input type="range" id="ball-opacity" min="0" max="1" step="0.05" value="0.8" style="width:100%">
+    </div>
+  </div>
+
+  <div id="main">
+    <div id="canvas-wrap"><canvas id="c3d"></canvas></div>
+    <div id="controls">
+      <button id="btn-step-back" title="1 frame back">&#9664;&#9664;</button>
+      <button id="btn-play">Play</button>
+      <button id="btn-step-fwd" title="1 frame forward">&#9654;&#9654;</button>
+      <button id="btn-reset">Reset</button>
+      <button id="btn-speed" style="min-width:50px; font-size:11px;">x1</button>
+      <div id="slider-wrap">
+        <input type="range" id="time-slider" min="0" max="100" value="0">
+        <div id="release-mark"></div>
+      </div>
+      <span id="time-label">0 / 0</span>
+    </div>
+    <div id="graph-section">
+      <div id="graph-toggle"><span>Graphs</span><span class="arrow">&#9660;</span></div>
+      <div id="graphs">
+        <canvas id="graph-force"></canvas>
+        <canvas id="graph-av"></canvas>
+        <canvas id="graph-vel"></canvas>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ===================================================================
+// Globals
+// ===================================================================
+const API = window.location.origin;
+let sessionData = null;  // full session JSON
+let simTrajectory = null; // Nathan simulation result
+
+// Spin start frames (detected from moment / angular_velocity data)
+let dynamicSpinStart = -1;    // 動力学的回転開始
+let kinematicSpinStart = -1;  // 運動学的回転開始
+let forceStartFrame = 0;      // force data becomes non-zero at this frame
+
+// Force stick colors
+const FORCE_COLOR_DEFAULT  = 0xe94560;  // red (default)
+const FORCE_COLOR_DYNAMIC  = 0x00cc88;  // green (dynamic spin start)
+const FORCE_COLOR_KINEMATIC = 0x4488ff; // blue (kinematic spin start)
+
+// Three.js
+let renderer, scene, camera;
+let animFrame = 0, playing = false;
+
+// Playback speed: steps per real millisecond (both mocap and sim are 1ms/step)
+// At ~60fps display, stepsPerRender = speed * 1000 / 60
+const SPEED_MODES = [
+    { label: 'x1',   factor: 1.0 },
+    { label: 'x1/2', factor: 0.5 },
+    { label: 'x1/5', factor: 0.2 },
+    { label: 'x1/17', factor: 1/17 },  // ~1 step/render at 60fps (original)
+];
+let speedIndex = 0;
+let stepsAccum = 0;  // fractional step accumulator
+
+function getStepsPerRender() {
+    return SPEED_MODES[speedIndex].factor * 1000 / 60;
+}
+
+// Sim trajectory playback
+let simFrame = 0;
+let simBallMesh = null;
+let noSpinTrajectory = null;
+let noSpinLine = null;
+let magnusArrows = [];
+
+// Active mode: 'mocap' or 'sim' - determines which ball is visible
+let activeMode = 'mocap';
+let releaseLocalFrame = 0;  // release frame index in mocap data
+
+// Unified slider: frames 0..releaseLocalFrame are mocap, releaseLocalFrame+1..totalFrames are sim
+// simOffset = number of sim frames to skip at start (t=0 duplicates)
+const SIM_SKIP = 2;
+let totalSliderMax = 0;
+
+function unifiedToMode(val) {
+    // Returns { mode: 'mocap'|'sim', mocapFrame, simFrame }
+    if (val <= releaseLocalFrame) {
+        return { mode: 'mocap', mocapFrame: val, simFrame: 0 };
+    } else {
+        const sf = (val - releaseLocalFrame) + SIM_SKIP;
+        return { mode: 'sim', mocapFrame: releaseLocalFrame, simFrame: sf };
+    }
+}
+
+function modeToUnified(mode, frame) {
+    if (mode === 'mocap') return frame;
+    return releaseLocalFrame + Math.max(0, frame - SIM_SKIP);
+}
+
+function updateSliderMax() {
+    const simLen = simTrajectory ? simTrajectory.length - 1 - SIM_SKIP : 0;
+    totalSliderMax = releaseLocalFrame + Math.max(0, simLen);
+    document.getElementById('time-slider').max = totalSliderMax;
+    updateReleaseMark();
+}
+
+function updateReleaseMark() {
+    const mark = document.getElementById('release-mark');
+    if (totalSliderMax <= 0) { mark.style.display = 'none'; return; }
+    const slider = document.getElementById('time-slider');
+    const pct = releaseLocalFrame / totalSliderMax;
+    // Account for slider thumb width (~16px)
+    const sliderW = slider.offsetWidth;
+    const thumbHalf = 8;
+    const pos = thumbHalf + pct * (sliderW - 2 * thumbHalf);
+    mark.style.left = pos + 'px';
+    mark.style.display = 'block';
+}
+
+function setUnifiedFrame(val) {
+    const info = unifiedToMode(val);
+    if (info.mode === 'mocap') {
+        activeMode = 'mocap';
+        animFrame = info.mocapFrame;
+        simFrame = 0;
+        if (simBallMesh) simBallMesh.visible = false;
+        if (simAvArrow) simAvArrow.visible = false;
+        updateDisplay(animFrame);
+    } else {
+        activeMode = 'sim';
+        animFrame = releaseLocalFrame;
+        simFrame = info.simFrame;
+        ballMesh.visible = false;
+        updateDisplay(releaseLocalFrame);
+        updateSimDisplay(simFrame);
+    }
+    document.getElementById('time-slider').value = val;
+    updateTimeLabel();
+}
+
+function updateTimeLabel() {
+    if (!sessionData) return;
+    const fps = sessionData.fps || 1000;
+    if (activeMode === 'sim' && simTrajectory && simFrame >= 0 && simFrame < simTrajectory.length) {
+        const p = simTrajectory[simFrame];
+        const tMs = Math.round(p.t * 1000);
+        document.getElementById('time-label').textContent = `Sim ${simFrame}/${simTrajectory.length-1} (+${tMs}ms)`;
+    } else {
+        const n = sessionData.frames.ball_center.length;
+        const tMs = Math.round((animFrame - releaseLocalFrame) / fps * 1000);
+        document.getElementById('time-label').textContent = `${animFrame}/${releaseLocalFrame} (${tMs}ms)`;
+    }
+}
+
+function switchToMocapMode() {
+    activeMode = 'mocap';
+    simFrame = 0;
+    if (simBallMesh) simBallMesh.visible = false;
+    if (simAvArrow) simAvArrow.visible = false;
+}
+
+function switchToSimMode() {
+    activeMode = 'sim';
+    playing = false;
+    if (sessionData) {
+        animFrame = releaseLocalFrame;
+        updateDisplay(releaseLocalFrame);
+    }
+    ballMesh.visible = false;
+}
+
+// 3D objects
+let ballMesh, trajectoryLine, simTrajectoryLine, poaTrajectoryLine, poaTrajectoryDots;
+let forceArrow, momentArrow, avArrow, poaDot;
+let curvatureDot = null, curvatureLine = null;
+let releaseMarker = null;
+let dynamicSpinMarker = null;
+let kinematicSpinMarker = null;
+let axesGroup;
+
+// ===========================================
+// Coordinate Systems
+// ===========================================
+// Mocap (origin = mound plate):
+//   X = pitcher -> catcher (positive)
+//   Y = 1B -> 3B (positive)
+//   Z = up (positive)
+//
+// Nathan sim:
+//   X = left-right (3B+ = mocap Y)
+//   Y = pitcher->catcher direction (negative toward catcher = -mocap X)
+//   Z = up (= mocap Z)
+//   BUT y0 in PitchParameters = distance from home plate (positive)
+//
+// Three.js (Y-up):
+//   We use mocap as base coordinate:
+//   Three.js X = mocap X (pitcher->catcher, depth axis)
+//   Three.js Y = mocap Z (up)
+//   Three.js Z = mocap Y (left-right)
+//
+const MOUND_TO_HOME = 18.44; // m
+
+// Mocap origin is 25.4cm above ground level
+const MOCAP_Z_OFFSET = 0.254;
+
+function mcToThree(p) {
+    return new THREE.Vector3(p[0], p[2] + MOCAP_Z_OFFSET, -p[1]);
+}
+function mcDirToThree(v) {
+    return new THREE.Vector3(v[0], v[2], -v[1]);
+}
+// Nathan trajectory output {x, y, z}:
+//   x = left-right (3B+), y = distance from home plate (positive = pitcher side, decreasing toward catcher)
+//   z = height
+// Nathan -> mocap:
+//   mocap X = MOUND_TO_HOME - nathan_y  (投手→捕手方向の距離)
+//   mocap Y = nathan_x                  (左右)
+//   mocap Z = nathan_z                  (高さ)
+// Then mocap -> Three.js
+function nathanToThree(p) {
+    const mocapX = MOUND_TO_HOME - p.y;
+    const mocapY = p.x;
+    const mocapZ = p.z;
+    return new THREE.Vector3(mocapX, mocapZ + MOCAP_Z_OFFSET, -mocapY);
+}
+
+// ===================================================================
+// Baseball seam texture (same as trajectory simulator index.html)
+// ===================================================================
+let baseballTexture = null;
+
+(function createBaseballTexture() {
+    const W = 1024, H = 512;
+    const canvas = document.createElement('canvas');
+    canvas.width = W; canvas.height = H;
+    const ctx = canvas.getContext('2d');
+
+    // White leather base
+    ctx.fillStyle = '#f5f5f0';
+    ctx.fillRect(0, 0, W, H);
+
+    // Subtle leather grain
+    for (let i = 0; i < 15000; i++) {
+        const x = Math.random() * W, y = Math.random() * H;
+        ctx.fillStyle = `rgba(200,195,185,${Math.random() * 0.12})`;
+        ctx.fillRect(x, y, 1, 1);
+    }
+
+    // Seam curve: hypotrochoid + sinusoidal z
+    const seamA = 3, seamB = 1, seamC = 2 * Math.sqrt(seamA * seamB);
+    const N = 800;
+
+    function xyz2uv(x, y, z) {
+        const lon = Math.atan2(y, x);
+        const lat = Math.asin(Math.max(-1, Math.min(1, z)));
+        return [(lon + Math.PI) / (2 * Math.PI) * W, (0.5 - lat / Math.PI) * H];
+    }
+
+    const seamPts = [];
+    for (let i = 0; i <= N; i++) {
+        const t = (i / N) * 2 * Math.PI;
+        const sx = seamA * Math.cos(t) + seamB * Math.cos(3 * t);
+        const sy = seamA * Math.sin(t) - seamB * Math.sin(3 * t);
+        const sz = seamC * Math.sin(2 * t);
+        const r = Math.sqrt(sx*sx + sy*sy + sz*sz);
+        seamPts.push({x: sx/r, y: sy/r, z: sz/r});
+    }
+
+    // Draw seam
+    ctx.strokeStyle = '#cc1111'; ctx.lineWidth = 12;
+    ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+    let prevUV = null;
+    ctx.beginPath();
+    for (let i = 0; i <= N; i++) {
+        const [ux, uy] = xyz2uv(seamPts[i].x, seamPts[i].y, seamPts[i].z);
+        if (prevUV && Math.abs(ux - prevUV[0]) > W * 0.5) {
+            ctx.stroke(); ctx.beginPath(); ctx.moveTo(ux, uy);
+        } else {
+            i === 0 ? ctx.moveTo(ux, uy) : ctx.lineTo(ux, uy);
+        }
+        prevUV = [ux, uy];
+    }
+    ctx.stroke();
+
+    // Stitch marks
+    ctx.lineWidth = 5;
+    for (let i = 0; i < N; i += 8) {
+        const [ux, uy] = xyz2uv(seamPts[i].x, seamPts[i].y, seamPts[i].z);
+        const [ux2, uy2] = xyz2uv(seamPts[Math.min(i+1, N)].x, seamPts[Math.min(i+1, N)].y, seamPts[Math.min(i+1, N)].z);
+        if (Math.abs(ux2 - ux) > W * 0.3) continue;
+        const dx = ux2 - ux, dy = uy2 - uy, len = Math.sqrt(dx*dx + dy*dy);
+        if (len < 0.5) continue;
+        const nx = -dy / len * 9, ny = dx / len * 9;
+        ctx.beginPath(); ctx.moveTo(ux - nx, uy - ny); ctx.lineTo(ux + nx, uy + ny); ctx.stroke();
+    }
+
+    baseballTexture = new THREE.CanvasTexture(canvas);
+    baseballTexture.wrapS = THREE.RepeatWrapping;
+    baseballTexture.wrapT = THREE.ClampToEdgeWrapping;
+})();
+
+function createBaseballMesh(radius) {
+    const geo = new THREE.SphereGeometry(radius, 32, 32);
+    const mat = new THREE.MeshPhongMaterial({
+        map: baseballTexture,
+        transparent: true,
+        opacity: 0.8,
+        depthWrite: true,
+        side: THREE.DoubleSide,
+    });
+    const mesh = new THREE.Mesh(geo, mat);
+    return mesh;
+}
+
+// ===================================================================
+// Baseball Field  (Three.js coords: X=toward catcher, Y=up, Z=left-right)
+// Origin = mound plate (mocap origin)
+// ===================================================================
+const FT = 0.3048;
+const IN = 0.0254;
+
+function fieldLine(points, color, opacity) {
+    const geo = new THREE.BufferGeometry().setFromPoints(points);
+    const mat = new THREE.LineBasicMaterial({color, transparent: opacity < 1, opacity});
+    scene.add(new THREE.Line(geo, mat));
+}
+
+function fieldRect(cx, cy, cz, w, d, color, opacity) {
+    // Rectangle on ground (Y=cy), width along Z, depth along X
+    const hw = w/2, hd = d/2;
+    fieldLine([
+        new THREE.Vector3(cx-hd, cy, cz-hw), new THREE.Vector3(cx+hd, cy, cz-hw),
+        new THREE.Vector3(cx+hd, cy, cz+hw), new THREE.Vector3(cx-hd, cy, cz+hw),
+        new THREE.Vector3(cx-hd, cy, cz-hw),
+    ], color, opacity);
+}
+
+function fieldCircle(cx, cy, cz, r, color, opacity, segs) {
+    segs = segs || 64;
+    const pts = [];
+    for (let i = 0; i <= segs; i++) {
+        const a = (i / segs) * Math.PI * 2;
+        pts.push(new THREE.Vector3(cx + r * Math.sin(a), cy, cz + r * Math.cos(a)));
+    }
+    fieldLine(pts, color, opacity);
+}
+
+function buildField() {
+    const HP = MOUND_TO_HOME; // home plate X position
+    const Y = 0.005; // slightly above ground
+
+    // --- Ground plane ---
+    const gnd = new THREE.Mesh(
+        new THREE.PlaneGeometry(40, 30),
+        new THREE.MeshBasicMaterial({color: 0x1a1a2e, side: THREE.DoubleSide})
+    );
+    gnd.rotation.x = -Math.PI / 2;
+    gnd.position.set(HP / 2, -0.01, 0);
+    scene.add(gnd);
+
+    // --- Grid (subtle) ---
+    const grid = new THREE.GridHelper(30, 30, 0x222244, 0x1a1a33);
+    grid.position.set(HP / 2, 0, 0);
+    scene.add(grid);
+
+    // --- Pitcher's mound plate (rubber) ---
+    // 24 x 6 inches, at origin
+    const rubberW = 24 * IN, rubberD = 6 * IN;
+    const rubberGeo = new THREE.PlaneGeometry(rubberD, rubberW); // depth along X, width along Z
+    const rubberMat = new THREE.MeshBasicMaterial({color: 0xcccccc, side: THREE.DoubleSide, transparent: true, opacity: 0.7});
+    const rubber = new THREE.Mesh(rubberGeo, rubberMat);
+    rubber.rotation.x = -Math.PI / 2;
+    rubber.position.set(0, 0.01, 0);
+    scene.add(rubber);
+
+    // Mound circle (18ft diameter = 9ft radius)
+    fieldCircle(0, Y, 0, 9 * FT, 0x8B7355, 0.3);
+
+    // --- Home plate (white pentagon) ---
+    const hpShape = new THREE.Shape();
+    const hpW = 17 * IN, hpHW = hpW / 2;
+    // Pentagon: point toward catcher (X+), flat edge toward pitcher (X-)
+    // In local coords, draw in XZ plane
+    hpShape.moveTo(hpW, 0);                 // point (catcher side)
+    hpShape.lineTo(8.5 * IN, hpHW);         // right side
+    hpShape.lineTo(0, hpHW);                // right-top
+    hpShape.lineTo(0, -hpHW);               // left-top (pitcher side)
+    hpShape.lineTo(8.5 * IN, -hpHW);        // left side
+    hpShape.closePath();
+    const hpGeo = new THREE.ShapeGeometry(hpShape);
+    const hpMat = new THREE.MeshBasicMaterial({color: 0xffffff, side: THREE.DoubleSide});
+    const hpMesh = new THREE.Mesh(hpGeo, hpMat);
+    hpMesh.rotation.x = -Math.PI / 2;
+    hpMesh.position.set(HP, 0.015, 0);
+    scene.add(hpMesh);
+
+    // --- Batter's boxes ---
+    const boxW = 4 * FT;   // 1.219m (along Z = left-right)
+    const boxD = 6 * FT;   // 1.828m (along X = toward catcher)
+    const gapHalf = (0.7366) / 2;
+    const boxOff = gapHalf + boxW / 2;
+    const boxCenterX = HP + 8.5 * IN; // aligned with home plate centroid
+    fieldRect(boxCenterX, Y, -boxOff, boxW, boxD, 0x888888, 0.5); // 3B side (RHB)
+    fieldRect(boxCenterX, Y, +boxOff, boxW, boxD, 0x888888, 0.5); // 1B side (LHB)
+
+    // --- Catcher's box ---
+    const catchW = 43 * IN; // ~1.092m
+    const catchD = 1.74;
+    fieldRect(HP + 17*IN + catchD/2, Y, 0, catchW, catchD, 0x666666, 0.3);
+
+    // --- Strike zone ---
+    const szBottom = 18.5 * IN, szTop = 43 * IN;
+    const szH = szTop - szBottom;
+    const szW = 17 * IN, szD = 17 * IN;
+    const szGeo = new THREE.BoxGeometry(szD, szH, szW);
+    const szMat = new THREE.MeshBasicMaterial({color: 0x00ff88, transparent: true, opacity: 0.06, side: THREE.DoubleSide});
+    const szMesh = new THREE.Mesh(szGeo, szMat);
+    szMesh.position.set(HP + szD/2, szBottom + szH/2, 0);
+    scene.add(szMesh);
+    const szEdges = new THREE.LineSegments(
+        new THREE.EdgesGeometry(szGeo),
+        new THREE.LineBasicMaterial({color: 0x00ff88, transparent: true, opacity: 0.4})
+    );
+    szEdges.position.copy(szMesh.position);
+    scene.add(szEdges);
+
+    // --- Foul lines (from home plate point, 45 deg each direction) ---
+    const foulLen = 40;
+    const hpPoint = new THREE.Vector3(HP + 17*IN, Y, 0);
+    // 1B line: +X, +Z direction (45 deg)
+    const sin45 = Math.sin(Math.PI / 4), cos45 = Math.cos(Math.PI / 4);
+    fieldLine([hpPoint, new THREE.Vector3(HP + 17*IN - foulLen*cos45, Y, foulLen*sin45)], 0xffffff, 0.3);
+    // 3B line: +X, -Z direction
+    fieldLine([hpPoint, new THREE.Vector3(HP + 17*IN - foulLen*cos45, Y, -foulLen*sin45)], 0xffffff, 0.3);
+
+    // --- Bases ---
+    const baseDist = 90 * FT; // 27.43m
+    const baseSize = 15 * IN;
+    // 1B
+    const b1x = HP + 17*IN - baseDist * cos45;
+    const b1z = baseDist * sin45;
+    fieldRect(b1x, Y+0.01, b1z, baseSize, baseSize, 0xffffff, 0.6);
+    // 3B
+    fieldRect(b1x, Y+0.01, -b1z, baseSize, baseSize, 0xffffff, 0.6);
+    // 2B
+    const b2x = HP + 17*IN - 2 * baseDist * cos45;
+    fieldRect(b2x, Y+0.01, 0, baseSize, baseSize, 0xffffff, 0.6);
+
+    // --- Pitcher-Home line (center line, subtle) ---
+    fieldLine([
+        new THREE.Vector3(0, Y, 0),
+        new THREE.Vector3(HP, Y, 0)
+    ], 0x444466, 0.4);
+}
+
+// ===================================================================
+// Three.js Setup
+// ===================================================================
+function initScene() {
+    const wrap = document.getElementById('canvas-wrap');
+    const canvas = document.getElementById('c3d');
+
+    renderer = new THREE.WebGLRenderer({canvas, antialias:true});
+    renderer.setPixelRatio(window.devicePixelRatio);
+    renderer.setClearColor(0x1a1a2e);
+
+    // Handle WebGL context loss: stop animation loop, restart on restore
+    canvas.addEventListener('webglcontextlost', e => {
+        e.preventDefault();
+        console.warn('WebGL context lost — pausing animation');
+        _contextLost = true;
+    });
+    canvas.addEventListener('webglcontextrestored', () => {
+        console.log('WebGL context restored — resuming');
+        _contextLost = false;
+        lastAnimTime = 0;
+        stepsAccum = 0;
+        requestAnimationFrame(animate);
+    });
+
+    scene = new THREE.Scene();
+    camera = new THREE.PerspectiveCamera(45, wrap.clientWidth / wrap.clientHeight, 0.01, 100);
+    // Default camera: 3塁側後方から俯瞰
+    // Initial position set by updateCamera() via orbit params
+    camera.position.set(-5, 4, 0);
+    camera.lookAt(5, 1.0, 0);
+
+    scene.add(new THREE.AmbientLight(0xffffff, 0.5));
+    const dir = new THREE.DirectionalLight(0xffffff, 0.7);
+    dir.position.set(2, 5, -3);
+    scene.add(dir);
+
+    // --- Baseball field elements ---
+    // Coordinate mapping: Three.js X=mocapX(投手→捕手), Y=mocapZ(上), Z=-mocapY(左右)
+    // Origin = mound plate (mocap origin)
+    // Home plate at Three.js X = MOUND_TO_HOME = 18.44m
+    buildField();
+
+    // Axes at mound plate
+    axesGroup = new THREE.Group();
+    const axLen = 0.5;
+    axesGroup.add(makeArrow(new THREE.Vector3(axLen,0,0), 0xff4444, new THREE.Vector3(0,0,0))); // X red (toward catcher)
+    axesGroup.add(makeArrow(new THREE.Vector3(0,axLen,0), 0x44ff44, new THREE.Vector3(0,0,0))); // Y green (up)
+    axesGroup.add(makeArrow(new THREE.Vector3(0,0,axLen), 0x4444ff, new THREE.Vector3(0,0,0))); // Z blue (1B side)
+    scene.add(axesGroup);
+
+    // Ball with baseball seam texture (shared with trajectory simulator)
+    ballMesh = createBaseballMesh(0.0365);
+    ballMesh.visible = false;
+    ballMesh.renderOrder = 1;
+    scene.add(ballMesh);
+
+    // Sim trajectory ball (opaque, slightly smaller for distinction)
+    simBallMesh = createBaseballMesh(0.0365);
+    simBallMesh.material = new THREE.MeshPhongMaterial({map: baseballTexture});
+    simBallMesh.visible = false;
+    scene.add(simBallMesh);
+
+    // Force stick+cone (red, originates from POA)
+    forceArrow = makeStickArrow(0xe94560, 0.001);
+    scene.add(forceArrow);
+
+    // Moment stick+cone (green)
+    momentArrow = makeStickArrow(0x00cc88, 0.001);
+    scene.add(momentArrow);
+
+    // Angular velocity stick+cone (orange, centered on ball)
+    avArrow = makeStickArrow(0xffaa00, 0.001);
+    scene.add(avArrow);
+
+    // Point of action dot (magenta, on ball surface)
+    const poaGeo = new THREE.SphereGeometry(0.001, 12, 12);
+    poaDot = new THREE.Mesh(poaGeo, new THREE.MeshBasicMaterial({color: 0xff0000}));
+    poaDot.visible = false;
+    poaDot.renderOrder = 0;
+    scene.add(poaDot);
+
+    // Curvature center dot + line to ball (cylinder-based for zoom visibility)
+    const curvGeo = new THREE.SphereGeometry(0.003, 12, 12);
+    curvatureDot = new THREE.Mesh(curvGeo, new THREE.MeshBasicMaterial({color: 0x88ffff}));
+    curvatureDot.visible = false;
+    scene.add(curvatureDot);
+    curvatureLine = makeStick(0x88ffff, 0.001);
+    curvatureLine.material.transparent = true;
+    curvatureLine.material.opacity = 0.6;
+    scene.add(curvatureLine);
+
+    // Empty trajectory lines
+    trajectoryLine = createLine(0x00aaff);
+    simTrajectoryLine = createLine(0xff6600);
+    poaTrajectoryLine = createLine(0xdd4444);
+    poaTrajectoryLine.visible = false;
+    const poaDotGeo = new THREE.BufferGeometry();
+    const poaDotMat = new THREE.PointsMaterial({color: 0xdd4444, size: 3, sizeAttenuation: false});
+    poaTrajectoryDots = new THREE.Points(poaDotGeo, poaDotMat);
+    poaTrajectoryDots.visible = false;
+    scene.add(poaTrajectoryDots);
+
+    resizeCanvas();
+    window.addEventListener('resize', resizeCanvas);
+}
+
+function resizeCanvas() {
+    const wrap = document.getElementById('canvas-wrap');
+    const w = wrap.clientWidth, h = wrap.clientHeight;
+    renderer.setSize(w, h);
+    camera.aspect = w / h;
+    camera.updateProjectionMatrix();
+    updateReleaseMark();
+}
+
+function createLine(color) {
+    const geo = new THREE.BufferGeometry();
+    const mat = new THREE.LineBasicMaterial({color, linewidth:2});
+    const line = new THREE.Line(geo, mat);
+    scene.add(line);
+    return line;
+}
+
+// --- Stick (cylinder-based line) helper ---
+// ArrowHelper の矢じり長さ問題を回避: 純粋な棒で描画
+const _stickGeo = new THREE.CylinderGeometry(1, 1, 1, 6, 1); // unit stick along Y
+_stickGeo.translate(0, 0.5, 0); // pivot at bottom
+
+function makeStick(color, radius) {
+    const mat = new THREE.MeshBasicMaterial({color: color});
+    const mesh = new THREE.Mesh(_stickGeo, mat);
+    mesh.visible = false;
+    mesh.renderOrder = 0;
+    mesh.userData._radius = radius || 0.003;
+    return mesh;
+}
+
+function updateStick(stick, origin, dir, scale) {
+    const len = dir.length() * scale;
+    if (len < 1e-6) { stick.visible = false; return; }
+    const r = stick.userData._radius || 0.003;
+    stick.position.copy(origin);
+    stick.scale.set(r, len, r);
+    // Orient: default cylinder is along +Y, rotate to match dir
+    const d = dir.clone().normalize();
+    stick.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), d);
+    stick.visible = true;
+}
+
+// --- Stick with cone tip (cylinder + arrowhead) ---
+const _coneGeo = new THREE.ConeGeometry(1, 1, 8);
+_coneGeo.translate(0, 0.5, 0); // pivot at base
+
+function makeStickArrow(color, radius) {
+    const group = new THREE.Group();
+    const stickMat = new THREE.MeshBasicMaterial({color: color});
+    const stick = new THREE.Mesh(_stickGeo, stickMat);
+    group.add(stick);
+    const coneMat = new THREE.MeshBasicMaterial({color: color});
+    const cone = new THREE.Mesh(_coneGeo, coneMat);
+    group.add(cone);
+    group.visible = false;
+    group.userData._radius = radius || 0.003;
+    group.userData._stick = stick;
+    group.userData._cone = cone;
+    return group;
+}
+
+function updateStickArrow(sa, origin, dir, len) {
+    if (len < 1e-6) { sa.visible = false; return; }
+    const r = sa.userData._radius || 0.003;
+    const coneH = r * 4;   // cone height = 4x radius
+    const coneR = r * 2.5; // cone radius = 2.5x stick radius
+    const stickLen = len - coneH;
+    if (stickLen < 1e-6) { sa.visible = false; return; }
+    const d = dir.clone().normalize();
+    // Stick: from origin, length = stickLen
+    const stick = sa.userData._stick;
+    stick.position.set(0, 0, 0);
+    stick.scale.set(r, stickLen, r);
+    stick.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), d);
+    // Cone: sits on top of stick
+    const cone = sa.userData._cone;
+    cone.position.copy(d.clone().multiplyScalar(stickLen));
+    cone.scale.set(coneR, coneH, coneR);
+    cone.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), d);
+    // Position the whole group
+    sa.position.copy(origin);
+    sa.visible = true;
+}
+
+// Legacy wrappers (for backward compat with Magnus arrows etc.)
+function makeArrow(dir, color, origin) {
+    const len = dir.length();
+    return new THREE.ArrowHelper(dir.clone().normalize(), origin, len, color, len*0.15, len*0.08);
+}
+
+function updateArrow(arrow, origin, dir, scale, thick) {
+    const len = dir.length() * scale;
+    if (len < 1e-6) { arrow.visible = false; return; }
+    arrow.position.copy(origin);
+    arrow.setDirection(dir.clone().normalize());
+    if (thick) {
+        arrow.setLength(len, len*0.25, len*0.15);
+    } else {
+        arrow.setLength(len, len*0.2, len*0.1);
+    }
+    arrow.visible = true;
+}
+
+// ===================================================================
+// Camera & View Modes
+// ===================================================================
+let isDragging = false, isPanning = false, prevMouse = {x:0, y:0};
+
+// View mode: 'field' or 'ball'
+let viewMode = 'field';
+
+// Field mode orbit parameters
+// theta=3PI/2: camera behind pitcher (-X side), looking toward catcher (+X)
+let fieldTheta = Math.PI * 1.5, fieldPhi = 1.1, fieldDist = 9;
+let fieldTarget = new THREE.Vector3(MOUND_TO_HOME / 2, 1.0, 0);  // midpoint mound-home
+
+// Ball zoom mode orbit parameters (relative to ball center)
+let ballTheta = Math.PI * 1.5, ballPhi = Math.PI / 2.5, ballDist = 0.225;  // -X direction (catcher view)
+
+function updateCamera() {
+    let target, theta, phi, dist;
+    // Ball Zoom: follow whichever ball is active (mocap or sim)
+    const activeBall = (activeMode === 'sim' && simBallMesh && simBallMesh.visible)
+        ? simBallMesh : ballMesh;
+    if (viewMode === 'ball' && activeBall && activeBall.visible) {
+        target = activeBall.position; theta = ballTheta; phi = ballPhi; dist = ballDist;
+    } else {
+        target = fieldTarget; theta = fieldTheta; phi = fieldPhi; dist = fieldDist;
+    }
+    camera.position.set(
+        target.x + dist * Math.sin(phi) * Math.sin(theta),
+        target.y + dist * Math.cos(phi),
+        target.z + dist * Math.sin(phi) * Math.cos(theta)
+    );
+    camera.lookAt(target);
+}
+
+function setViewMode(mode) {
+    viewMode = mode;
+    document.querySelectorAll('.view-btn').forEach(b => {
+        b.style.background = '#333';
+        b.classList.remove('active');
+    });
+    if (mode === 'field') {
+        document.getElementById('btn-view-field').style.background = '#e94560';
+        document.getElementById('ball-zoom-opts').style.display = 'none';
+    } else {
+        document.getElementById('btn-view-ball').style.background = '#e94560';
+        document.getElementById('ball-zoom-opts').style.display = 'block';
+        ballTheta = Math.PI * 1.5;
+        ballPhi = Math.PI / 2.5;
+        ballDist = parseFloat(document.getElementById('ball-zoom-dist').value);
+    }
+    updateCamera();
+}
+
+function initMouseControls() {
+    const canvas = document.getElementById('c3d');
+
+    // Disable right-click context menu on canvas
+    canvas.addEventListener('contextmenu', e => e.preventDefault());
+
+    canvas.addEventListener('mousedown', e => {
+        if (e.button === 2 || e.shiftKey) {
+            isPanning = true;
+        } else {
+            isDragging = true;
+        }
+        prevMouse = {x: e.clientX, y: e.clientY};
+    });
+
+    canvas.addEventListener('mouseup', () => { isDragging = false; isPanning = false; });
+    canvas.addEventListener('mouseleave', () => { isDragging = false; isPanning = false; });
+
+    canvas.addEventListener('mousemove', e => {
+        const dx = e.clientX - prevMouse.x, dy = e.clientY - prevMouse.y;
+        prevMouse = {x: e.clientX, y: e.clientY};
+
+        if (isPanning) {
+            // Right-click drag: pan (move target in camera-local XY plane)
+            const dist = viewMode === 'ball' ? ballDist : fieldDist;
+            const panSpeed = 0.005 * dist;
+            const target = viewMode === 'ball' ? fieldTarget : fieldTarget; // field mode only
+            const camRight = new THREE.Vector3();
+            const camUp = new THREE.Vector3();
+            camRight.crossVectors(camera.up, new THREE.Vector3().subVectors(target, camera.position)).normalize();
+            camUp.copy(camera.up);
+            fieldTarget.add(camRight.multiplyScalar(-dx * panSpeed));
+            fieldTarget.add(camUp.multiplyScalar(dy * panSpeed));
+            updateCamera();
+        } else if (isDragging) {
+            // Left-click drag: orbit
+            if (viewMode === 'ball') {
+                ballTheta -= dx * 0.008;
+                ballPhi = Math.max(0.1, Math.min(Math.PI - 0.1, ballPhi - dy * 0.008));
+            } else {
+                fieldTheta -= dx * 0.005;
+                fieldPhi = Math.max(0.1, Math.min(Math.PI - 0.1, fieldPhi - dy * 0.005));
+            }
+            updateCamera();
+        }
+    });
+
+    canvas.addEventListener('wheel', e => {
+        if (viewMode === 'ball') {
+            ballDist = Math.max(0.03, Math.min(5.0, ballDist + e.deltaY * 0.0002));
+            document.getElementById('ball-zoom-dist').value = ballDist;
+        } else {
+            fieldDist = Math.max(0.5, Math.min(40, fieldDist + e.deltaY * 0.05));
+        }
+        updateCamera();
+    });
+
+    // --- Touch support (iPad / mobile) ---
+    let touchMode = 'none';  // 'orbit', 'pinch'
+    let prevTouch = {x:0, y:0};
+    let prevPinchDist = 0;
+
+    canvas.addEventListener('touchstart', e => {
+        e.preventDefault();
+        if (e.touches.length === 1) {
+            touchMode = 'orbit';
+            prevTouch = {x: e.touches[0].clientX, y: e.touches[0].clientY};
+        } else if (e.touches.length === 2) {
+            touchMode = 'pinch';
+            const dx = e.touches[0].clientX - e.touches[1].clientX;
+            const dy = e.touches[0].clientY - e.touches[1].clientY;
+            prevPinchDist = Math.sqrt(dx*dx + dy*dy);
+            // Also track midpoint for pan
+            prevTouch = {
+                x: (e.touches[0].clientX + e.touches[1].clientX) / 2,
+                y: (e.touches[0].clientY + e.touches[1].clientY) / 2
+            };
+        }
+    }, {passive: false});
+
+    canvas.addEventListener('touchmove', e => {
+        e.preventDefault();
+        if (touchMode === 'orbit' && e.touches.length === 1) {
+            const dx = e.touches[0].clientX - prevTouch.x;
+            const dy = e.touches[0].clientY - prevTouch.y;
+            prevTouch = {x: e.touches[0].clientX, y: e.touches[0].clientY};
+            if (viewMode === 'ball') {
+                ballTheta -= dx * 0.008;
+                ballPhi = Math.max(0.1, Math.min(Math.PI - 0.1, ballPhi - dy * 0.008));
+            } else {
+                fieldTheta -= dx * 0.005;
+                fieldPhi = Math.max(0.1, Math.min(Math.PI - 0.1, fieldPhi - dy * 0.005));
+            }
+            updateCamera();
+        } else if (touchMode === 'pinch' && e.touches.length === 2) {
+            // Pinch zoom
+            const dx = e.touches[0].clientX - e.touches[1].clientX;
+            const dy = e.touches[0].clientY - e.touches[1].clientY;
+            const pinchDist = Math.sqrt(dx*dx + dy*dy);
+            const delta = prevPinchDist - pinchDist;
+            prevPinchDist = pinchDist;
+            if (viewMode === 'ball') {
+                ballDist = Math.max(0.03, Math.min(5.0, ballDist + delta * 0.001));
+                document.getElementById('ball-zoom-dist').value = ballDist;
+            } else {
+                fieldDist = Math.max(0.5, Math.min(40, fieldDist + delta * 0.05));
+            }
+            // Two-finger pan
+            const midX = (e.touches[0].clientX + e.touches[1].clientX) / 2;
+            const midY = (e.touches[0].clientY + e.touches[1].clientY) / 2;
+            const panDx = midX - prevTouch.x, panDy = midY - prevTouch.y;
+            prevTouch = {x: midX, y: midY};
+            const dist = viewMode === 'ball' ? ballDist : fieldDist;
+            const panSpeed = 0.005 * dist;
+            const camRight = new THREE.Vector3();
+            const camUp = new THREE.Vector3();
+            camRight.crossVectors(camera.up, new THREE.Vector3().subVectors(fieldTarget, camera.position)).normalize();
+            camUp.copy(camera.up);
+            fieldTarget.add(camRight.multiplyScalar(-panDx * panSpeed));
+            fieldTarget.add(camUp.multiplyScalar(panDy * panSpeed));
+            updateCamera();
+        }
+    }, {passive: false});
+
+    canvas.addEventListener('touchend', () => { touchMode = 'none'; });
+    canvas.addEventListener('touchcancel', () => { touchMode = 'none'; });
+}
+
+// ===================================================================
+// Spin Start Detection
+// ===================================================================
+function vecNorm(v) { return Math.sqrt(v[0]*v[0] + v[1]*v[1] + v[2]*v[2]); }
+
+function detectDynamicSpinStart(momentData) {
+    // 動力学的回転開始: 最後20フレーム内でモーメントノルム最大を探し、その前の最小値
+    const n = momentData.length;
+    if (n < 20) return -1;
+    const start = n - 20;
+    const norms = momentData.map(vecNorm);
+    let maxIdx = start;
+    for (let i = start + 1; i < n; i++) { if (norms[i] > norms[maxIdx]) maxIdx = i; }
+    let minIdx = start;
+    for (let i = start + 1; i < maxIdx; i++) { if (norms[i] < norms[minIdx]) minIdx = i; }
+    return minIdx;
+}
+
+function detectKinematicSpinStart(avData) {
+    // 運動学的回転開始: 最後20フレーム内で角速度ノルムの最小値
+    const n = avData.length;
+    if (n < 20) return -1;
+    const start = n - 20;
+    const norms = avData.map(vecNorm);
+    let minIdx = start;
+    for (let i = start + 1; i < n; i++) { if (norms[i] < norms[minIdx]) minIdx = i; }
+    return minIdx;
+}
+
+// ===================================================================
+// Data Loading
+// ===================================================================
+async function loadSessionList() {
+    const resp = await fetch(`${API}/mocap/sessions`);
+    const list = await resp.json();
+    const sel = document.getElementById('session-select');
+    list.forEach(s => {
+        const opt = document.createElement('option');
+        opt.value = s.id;
+        opt.textContent = `${s.player_name} ${s.pitch_type} ${s.release_speed_kmh?.toFixed(0)||'?'}km/h`;
+        sel.appendChild(opt);
+    });
+}
+
+async function loadSession(sessionId) {
+    document.getElementById('loading').classList.remove('hidden');
+
+    const resp = await fetch(`${API}/mocap/session/${sessionId}`);
+    if (!resp.ok) { alert('Session not found'); return; }
+    sessionData = await resp.json();
+
+    // Detect spin start frames
+    const f = sessionData.frames;
+    dynamicSpinStart = f.moment ? detectDynamicSpinStart(f.moment) : -1;
+    kinematicSpinStart = f.angular_velocity ? detectKinematicSpinStart(f.angular_velocity) : -1;
+
+    // Detect first frame where force is non-zero
+    forceStartFrame = 0;
+    if (f.force) {
+        for (let i = 0; i < f.force.length; i++) {
+            const fn = f.force[i];
+            if (Math.sqrt(fn[0]*fn[0] + fn[1]*fn[1] + fn[2]*fn[2]) > 0.01) {
+                forceStartFrame = i;
+                break;
+            }
+        }
+    }
+    console.log(`Spin start: dynamic=${dynamicSpinStart}, kinematic=${kinematicSpinStart}, forceStart=${forceStartFrame}`);
+
+    // Update info
+    document.getElementById('info-player').textContent = sessionData.player_name;
+    document.getElementById('info-pitch').textContent = sessionData.pitch_type;
+    document.getElementById('info-speed').textContent = (sessionData.summary?.release_speed_kmh?.toFixed(1) || '-') + ' km/h';
+    document.getElementById('info-spin').textContent = (sessionData.summary?.spin_rate_rpm?.toFixed(0) || '-') + ' rpm';
+    document.getElementById('info-frames').textContent = sessionData.frames.ball_center.length;
+
+    // Build trajectory line
+    const pts = sessionData.frames.ball_center.map(p => mcToThree(p));
+    trajectoryLine.geometry.dispose();
+    trajectoryLine.geometry = new THREE.BufferGeometry().setFromPoints(pts);
+
+    // Helper: create dashed circle marker
+    function createRingMarker(color, radius) {
+        const ringSegs = 64;
+        const ringPts = [];
+        for (let i = 0; i <= ringSegs; i++) {
+            const a = (i / ringSegs) * Math.PI * 2;
+            ringPts.push(new THREE.Vector3(radius * Math.cos(a), radius * Math.sin(a), 0));
+        }
+        const ringGeo = new THREE.BufferGeometry().setFromPoints(ringPts);
+        const ringMat = new THREE.LineDashedMaterial({color: color, dashSize: 0.006, gapSize: 0.004, transparent: true, opacity: 0.8});
+        const ring = new THREE.Line(ringGeo, ringMat);
+        ring.computeLineDistances();
+        return ring;
+    }
+
+    // Release point marker (dashed circle, yellow)
+    if (releaseMarker) scene.remove(releaseMarker);
+    const rf = sessionData.release_frame;
+    if (rf != null && rf < pts.length) {
+        releaseMarker = createRingMarker(0xffff00, 0.03);
+        releaseMarker.position.copy(pts[rf]);
+        scene.add(releaseMarker);
+    }
+
+    // Dynamic spin start marker (dashed circle, green)
+    if (dynamicSpinMarker) scene.remove(dynamicSpinMarker);
+    dynamicSpinMarker = null;
+    if (dynamicSpinStart >= 0 && dynamicSpinStart < pts.length) {
+        dynamicSpinMarker = createRingMarker(0x00cc88, 0.03);
+        dynamicSpinMarker.position.copy(pts[dynamicSpinStart]);
+        scene.add(dynamicSpinMarker);
+    }
+
+    // Kinematic spin start marker (dashed circle, blue)
+    if (kinematicSpinMarker) scene.remove(kinematicSpinMarker);
+    kinematicSpinMarker = null;
+    if (kinematicSpinStart >= 0 && kinematicSpinStart < pts.length) {
+        kinematicSpinMarker = createRingMarker(0x4488ff, 0.03);
+        kinematicSpinMarker.position.copy(pts[kinematicSpinStart]);
+        scene.add(kinematicSpinMarker);
+    }
+
+    // Keep default field view (pitcher mound behind, slightly above)
+    updateCamera();
+
+    // Setup unified slider
+    releaseLocalFrame = sessionData.release_frame || (sessionData.frames.ball_center.length - 1);
+    animFrame = 0;
+    activeMode = 'mocap';
+    updateSliderMax();
+    document.getElementById('time-slider').value = 0;
+    updateDisplay(0);
+
+    // Load Nathan simulation
+    await loadSimulation(sessionId);
+
+    document.getElementById('loading').classList.add('hidden');
+}
+
+async function loadSimulation(sessionId) {
+    // Clear previous magnus arrows
+    magnusArrows.forEach(a => scene.remove(a));
+    magnusArrows = [];
+
+    try {
+        const resp = await fetch(`${API}/mocap/session/${sessionId}/simulate`, {method:'POST'});
+        if (!resp.ok) { simTrajectory = null; noSpinTrajectory = null; return; }
+        const data = await resp.json();
+        simTrajectory = data.trajectory;
+        noSpinTrajectory = data.nospin_trajectory || null;
+
+        // Spin trajectory line
+        const pts = simTrajectory.map(p => nathanToThree(p));
+        simTrajectoryLine.geometry.dispose();
+        simTrajectoryLine.geometry = new THREE.BufferGeometry().setFromPoints(pts);
+
+        // No-spin trajectory line (dashed, light blue)
+        if (noSpinTrajectory) {
+            if (noSpinLine) { scene.remove(noSpinLine); }
+            const nsPts = noSpinTrajectory.map(p => nathanToThree(p));
+            const nsGeo = new THREE.BufferGeometry().setFromPoints(nsPts);
+            const nsMat = new THREE.LineDashedMaterial({color: 0x00aaff, dashSize: 0.15, gapSize: 0.08, transparent: true, opacity: 0.6});
+            noSpinLine = new THREE.Line(nsGeo, nsMat);
+            noSpinLine.computeLineDistances();
+            scene.add(noSpinLine);
+        }
+
+        // Magnus force arrows along spin trajectory (every ~step points)
+        if (simTrajectory.length > 20) {
+            const step = Math.max(Math.floor(simTrajectory.length / 8), 10);
+            for (let i = step; i < simTrajectory.length - 5; i += step) {
+                const p = simTrajectory[i];
+                if (p.magnus_x == null) continue;
+                const mag = Math.sqrt(p.magnus_x**2 + p.magnus_y**2 + p.magnus_z**2);
+                if (mag < 0.001) continue;
+                // Nathan coords -> mocap -> Three.js
+                // Magnus force is in Nathan coords: convert to mocap first
+                // mocap_x = -nathan_y (but for direction vectors: d_mocap_x = -d_nathan_y)
+                // Actually for force direction: same as position transform but without offset
+                // Nathan dir -> mocap dir: dx_mc = -dy_n, dy_mc = dx_n, dz_mc = dz_n
+                const mMocap = [-p.magnus_y, p.magnus_x, p.magnus_z];
+                const mDir = mcDirToThree(mMocap).normalize();
+                const origin = nathanToThree(p);
+                const arrow = new THREE.ArrowHelper(mDir, origin, 0.25, 0x4fc3f7, 0.04, 0.03);
+                arrow.line.material.transparent = true;
+                arrow.line.material.opacity = 0.35;
+                arrow.cone.material.transparent = true;
+                arrow.cone.material.opacity = 0.35;
+                magnusArrows.push(arrow);
+                scene.add(arrow);
+            }
+        }
+
+        // Update unified slider range to include sim frames
+        simFrame = 0;
+        updateSliderMax();
+        updateSimDisplay(0);
+    } catch(e) {
+        simTrajectory = null;
+        noSpinTrajectory = null;
+    }
+}
+
+// Sim angular velocity arrow (reuse separate arrow for sim mode)
+let simAvArrow = null;
+
+function updateSimDisplay(frame) {
+    if (!simTrajectory || frame < 0 || frame >= simTrajectory.length) {
+        if (simBallMesh) simBallMesh.visible = false;
+        if (simAvArrow) simAvArrow.visible = false;
+        updateTimeLabel();
+        return;
+    }
+    const p = simTrajectory[frame];
+    const pos = nathanToThree(p);
+    simBallMesh.position.copy(pos);
+    simBallMesh.visible = (activeMode === 'sim') && document.getElementById('chk-sim').checked;
+
+    // Spin rotation: release orientation + cumulative rotation from angular velocity
+    const sp = sessionData && sessionData.sim_params;
+    if (sp && sp.wx_rad_s != null) {
+        // Angular velocity in mocap frame (constant during flight)
+        const wx = sp.wx_rad_s, wy = sp.wy_rad_s, wz = sp.wz_rad_s;
+        const omegaMag = Math.sqrt(wx*wx + wy*wy + wz*wz);
+        if (omegaMag > 0.1) {
+            // Start from release orientation (mocap SVD rotation matrix)
+            const releaseQuat = new THREE.Quaternion();
+            const f = sessionData.frames;
+            const rf = releaseLocalFrame;
+            if (f.rotation && rf < f.rotation.length) {
+                const m = f.rotation[rf];
+                if (Math.abs(m[0][0]) + Math.abs(m[1][1]) + Math.abs(m[2][2]) > 0.1) {
+                    // Same T*R*T^T transform as mocap ball
+                    const a00=m[0][0], a01=m[0][2], a02=-m[0][1];
+                    const a10=m[1][0], a11=m[1][2], a12=-m[1][1];
+                    const a20=m[2][0], a21=m[2][2], a22=-m[2][1];
+                    const mat4 = new THREE.Matrix4();
+                    mat4.set(a00,a01,a02,0, a20,a21,a22,0, -a10,-a11,-a12,0, 0,0,0,1);
+                    releaseQuat.setFromRotationMatrix(mat4);
+                }
+            }
+            // Cumulative spin rotation since release
+            const axisMc = [wx/omegaMag, wy/omegaMag, wz/omegaMag];
+            const axisThree = mcDirToThree(axisMc).normalize();
+            const t = p.t;
+            const angle = omegaMag * t;
+            const spinQuat = new THREE.Quaternion().setFromAxisAngle(axisThree, angle);
+            // Compose: spin * release orientation
+            const finalQuat = spinQuat.multiply(releaseQuat);
+            simBallMesh.setRotationFromQuaternion(finalQuat);
+
+            // Angular velocity stick (centered on ball)
+            if (!simAvArrow) {
+                simAvArrow = makeStickArrow(0xffaa00, 0.001);
+                scene.add(simAvArrow);
+            }
+            if (document.getElementById('chk-angular-vel').checked && activeMode === 'sim') {
+                const avDir = mcDirToThree([wx, wy, wz]);
+                const avScale = 0.002 * parseFloat(document.getElementById('scale-av').value);
+                const avLen = avDir.length() * avScale;
+                if (avLen > 1e-6) {
+                    const avNorm = avDir.clone().normalize();
+                    const avOrigin = pos.clone().sub(avNorm.clone().multiplyScalar(avLen / 2));
+                    updateStickArrow(simAvArrow, avOrigin, avNorm, avLen);
+                } else {
+                    simAvArrow.visible = false;
+                }
+            } else {
+                simAvArrow.visible = false;
+            }
+        }
+    }
+
+    updateTimeLabel();
+    // Redraw graphs so velocity value updates in sim mode
+    if (sessionData) drawGraphs(releaseLocalFrame);
+}
+
+// ===================================================================
+// Frame Update
+// ===================================================================
+function updateDisplay(frame) {
+    if (!sessionData) return;
+    const f = sessionData.frames;
+    const n = f.ball_center.length;
+    if (frame < 0 || frame >= n) return;
+
+    // Ball position
+    const pos = mcToThree(f.ball_center[frame]);
+    ballMesh.position.copy(pos);
+    ballMesh.visible = (activeMode === 'mocap');
+
+    // Ball rotation from SVD rotation matrix
+    if (frame < f.rotation.length) {
+        const R = f.rotation[frame];
+        // Check if valid (non-zero)
+        if (Math.abs(R[0][0]) + Math.abs(R[1][1]) + Math.abs(R[2][2]) > 0.1) {
+            // Mocap rotation matrix R (3x3) -> Three.js Matrix4
+            // Mocap axes -> Three.js: X=mcX, Y=mcZ, Z=-mcY
+            // Transform R: R_three = T * R_mocap * T^-1
+            // where T maps mocap->three.js basis
+            const m = R;
+            // Direct mapping: R_mocap columns are mocap basis vectors
+            // Column j of R gives where mocap-axis-j ends up
+            // We need to re-express in Three.js axes
+            //   three_x = mc_x,  three_y = mc_z,  three_z = -mc_y
+            // So: R_three[i][j] = T * R_mc * T^T
+            // T = [[1,0,0],[0,0,-1],[0,1,0]]  (mc_x->x, mc_y->-z, mc_z->y)
+            // R_three = T R T^T
+            const rt = [
+                [ m[0][0], -m[0][1], m[0][2]],
+                [-m[1][0],  m[1][1], -m[1][2]],
+                [ m[2][0], -m[2][1], m[2][2]],
+            ];
+            // Wait... let me do this properly with the actual transform
+            // T: mc(x,y,z) -> three(x, z_mc, -y_mc) = three(mc_x, mc_z, -mc_y)
+            // T = | 1  0  0 |    T^T = | 1  0  0 |
+            //     | 0  0  1 |          | 0  0 -1 |
+            //     | 0 -1  0 |          | 0  1  0 |
+            // R_three = T * R_mc * T^T
+            // First: A = R_mc * T^T
+            const a00 = m[0][0]*1 + m[0][1]*0  + m[0][2]*0;
+            const a01 = m[0][0]*0 + m[0][1]*0  + m[0][2]*1;
+            const a02 = m[0][0]*0 + m[0][1]*(-1)+ m[0][2]*0;
+            const a10 = m[1][0]*1 + m[1][1]*0  + m[1][2]*0;
+            const a11 = m[1][0]*0 + m[1][1]*0  + m[1][2]*1;
+            const a12 = m[1][0]*0 + m[1][1]*(-1)+ m[1][2]*0;
+            const a20 = m[2][0]*1 + m[2][1]*0  + m[2][2]*0;
+            const a21 = m[2][0]*0 + m[2][1]*0  + m[2][2]*1;
+            const a22 = m[2][0]*0 + m[2][1]*(-1)+ m[2][2]*0;
+            // Then: R_three = T * A
+            // T row0 = [1,0,0]: r00=a00, r01=a01, r02=a02
+            // T row1 = [0,0,1]: r10=a20, r11=a21, r12=a22
+            // T row2 = [0,-1,0]: r20=-a10, r21=-a11, r22=-a12
+            const mat4 = new THREE.Matrix4();
+            mat4.set(
+                a00,  a01,  a02,  0,
+                a20,  a21,  a22,  0,
+               -a10, -a11, -a12,  0,
+                0,    0,    0,    1
+            );
+            ballMesh.setRotationFromMatrix(mat4);
+        }
+    }
+
+    // In sim mode, hide all mocap vectors
+    if (activeMode === 'sim') {
+        poaDot.visible = false;
+        forceArrow.visible = false;
+        momentArrow.visible = false;
+        avArrow.visible = false;
+        curvatureDot.visible = false;
+        curvatureLine.visible = false;
+        drawGraphs(frame);
+        return;
+    }
+
+    // Point of action (compute first, used as force arrow origin)
+    let poaPos = null;
+    if (frame < f.point_of_action.length) {
+        const pa = f.point_of_action[frame];
+        if (Math.abs(pa[0]) + Math.abs(pa[1]) + Math.abs(pa[2]) > 1e-6) {
+            poaPos = pos.clone().add(mcDirToThree(pa));
+        }
+    }
+    if (poaPos && document.getElementById('chk-poa').checked) {
+        poaDot.position.copy(poaPos);
+        poaDot.visible = true;
+    } else {
+        poaDot.visible = false;
+    }
+
+    // Force vector (only from forceStartFrame onward)
+    const forceScale = parseFloat(document.getElementById('scale-force').value) * 0.001;
+    if (frame >= forceStartFrame && frame < f.force.length && document.getElementById('chk-force').checked) {
+        // Change color at spin start frames
+        let fColor = FORCE_COLOR_DEFAULT;
+        if (frame === dynamicSpinStart) fColor = FORCE_COLOR_DYNAMIC;
+        else if (frame === kinematicSpinStart) fColor = FORCE_COLOR_KINEMATIC;
+        forceArrow.userData._stick.material.color.setHex(fColor);
+        forceArrow.userData._cone.material.color.setHex(fColor);
+        const forceOrigin = poaPos || pos;
+        const fDir = mcDirToThree(f.force[frame]);
+        const fLen = fDir.length() * forceScale;
+        updateStickArrow(forceArrow, forceOrigin, fDir.normalize(), fLen);
+    } else {
+        forceArrow.visible = false;
+    }
+
+    // Curvature center: center = pos + (|vel|²/|acc×vel|²) * (vel × (acc × vel))
+    if (frame < f.velocity.length && frame < f.acceleration.length &&
+        document.getElementById('chk-curvature').checked) {
+        const vel = f.velocity[frame];
+        const acc = f.acceleration[frame];
+        // cross product helper
+        function cross(a, b) { return [a[1]*b[2]-a[2]*b[1], a[2]*b[0]-a[0]*b[2], a[0]*b[1]-a[1]*b[0]]; }
+        function dot(a, b) { return a[0]*b[0]+a[1]*b[1]+a[2]*b[2]; }
+        function mag2(a) { return dot(a, a); }
+        const axv = cross(acc, vel);          // acc × vel
+        const axv_mag2 = mag2(axv);
+        if (axv_mag2 > 1e-12) {
+            const v_mag2 = mag2(vel);
+            const vxaxv = cross(vel, axv);    // vel × (acc × vel)
+            const scale = v_mag2 / axv_mag2;
+            const p = f.ball_center[frame];
+            const cc = [p[0] + scale * vxaxv[0], p[1] + scale * vxaxv[1], p[2] + scale * vxaxv[2]];
+            const ccPos = mcToThree(cc);
+            curvatureDot.position.copy(ccPos);
+            curvatureDot.visible = true;
+            // Line from ball to curvature center (cylinder stick)
+            const clDir = ccPos.clone().sub(pos);
+            updateStick(curvatureLine, pos, clDir, 1.0);
+        } else {
+            curvatureDot.visible = false;
+            curvatureLine.visible = false;
+        }
+    } else {
+        curvatureDot.visible = false;
+        curvatureLine.visible = false;
+    }
+
+    // Helper: transform body-frame vector to global mocap frame using rotation matrix
+    // angular_velocity and moment are computed in body frame by angular_velocity_3base
+    // ω_global = R · ω_body  (R columns = body basis vectors in global coords)
+    function bodyToGlobal(bodyVec, R) {
+        if (!R || Math.abs(R[0][0]) + Math.abs(R[1][1]) + Math.abs(R[2][2]) < 0.1) return bodyVec;
+        return [
+            R[0][0]*bodyVec[0] + R[0][1]*bodyVec[1] + R[0][2]*bodyVec[2],
+            R[1][0]*bodyVec[0] + R[1][1]*bodyVec[1] + R[1][2]*bodyVec[2],
+            R[2][0]*bodyVec[0] + R[2][1]*bodyVec[1] + R[2][2]*bodyVec[2],
+        ];
+    }
+
+    const R = (frame < f.rotation.length) ? f.rotation[frame] : null;
+
+    // Moment vector (body frame → global → Three.js)
+    const momentScale = parseFloat(document.getElementById('scale-moment').value) * 0.1;
+    if (frame < f.moment.length && document.getElementById('chk-moment').checked) {
+        const momentGlobal = bodyToGlobal(f.moment[frame], R);
+        const mDir = mcDirToThree(momentGlobal);
+        const mLen = mDir.length() * momentScale;
+        updateStickArrow(momentArrow, pos, mDir.normalize(), mLen);
+    } else {
+        momentArrow.visible = false;
+    }
+
+    // Angular velocity (body frame → global → Three.js, centered on ball)
+    // Start from same frame as force data (forceStartFrame aligned to ball_center index)
+    const avStartFrame = (f.ball_center.length - f.force.length) + forceStartFrame;
+    if (frame >= avStartFrame && frame < f.angular_velocity.length && document.getElementById('chk-angular-vel').checked) {
+        const avGlobal = bodyToGlobal(f.angular_velocity[frame], R);
+        const avDir = mcDirToThree(avGlobal);
+        const avScale = 0.002 * parseFloat(document.getElementById('scale-av').value);
+        const avLen = avDir.length() * avScale;
+        if (avLen > 1e-6) {
+            const avNorm = avDir.clone().normalize();
+            const avOrigin = pos.clone().sub(avNorm.clone().multiplyScalar(avLen / 2));
+            updateStickArrow(avArrow, avOrigin, avNorm, avLen);
+        } else {
+            avArrow.visible = false;
+        }
+    } else {
+        avArrow.visible = false;
+    }
+
+    // Visibility toggles
+    trajectoryLine.visible = document.getElementById('chk-trajectory').checked;
+    simTrajectoryLine.visible = document.getElementById('chk-sim').checked;
+    // POA trajectory on ball surface (Ball Zoom mode only, dynamic spin start to release)
+    const showPoaTrail = viewMode === 'ball' && document.getElementById('chk-poa').checked;
+    if (showPoaTrail && f.point_of_action) {
+        const poaStart = Math.max(0, dynamicSpinStart);
+        const poaEnd = Math.min(f.point_of_action.length,
+            sessionData.release_frame != null ? sessionData.release_frame + 1 : f.point_of_action.length);
+        const poaPts = [];
+        for (let i = poaStart; i < poaEnd; i++) {
+            const pa = f.point_of_action[i];
+            if (Math.abs(pa[0]) + Math.abs(pa[1]) + Math.abs(pa[2]) > 1e-6) {
+                poaPts.push(pos.clone().add(mcDirToThree(pa)));
+            }
+        }
+        poaTrajectoryLine.geometry.dispose();
+        poaTrajectoryLine.geometry = new THREE.BufferGeometry().setFromPoints(poaPts);
+        poaTrajectoryLine.visible = true;
+        poaTrajectoryDots.geometry.dispose();
+        poaTrajectoryDots.geometry = new THREE.BufferGeometry().setFromPoints(poaPts);
+        poaTrajectoryDots.visible = true;
+    } else {
+        poaTrajectoryLine.visible = false;
+        poaTrajectoryDots.visible = false;
+    }
+    if (noSpinLine) noSpinLine.visible = document.getElementById('chk-nospin').checked;
+    const showMagnus = document.getElementById('chk-magnus').checked;
+    magnusArrows.forEach(a => a.visible = showMagnus);
+    axesGroup.visible = document.getElementById('chk-axes').checked;
+
+    // Graphs (skip during fast playback to keep frame rate consistent)
+    const isPlaying = playing;
+    const fastMode = isPlaying && SPEED_MODES[speedIndex].factor > 0.2;
+    if (!fastMode || (frame % 8 === 0)) {
+        drawGraphs(frame);
+    }
+}
+
+// ===================================================================
+// Graphs (Canvas 2D)
+// ===================================================================
+function drawGraphs(currentFrame) {
+    // Force and angular_velocity graphs start from forceStartFrame (where force becomes non-zero)
+    // Angular_velocity is longer than force, so offset it to align with force start
+    const avForceAlignOffset = (sessionData.frames.ball_center.length - sessionData.frames.force.length) + forceStartFrame;
+    const xyzColors = ['#ff8800','#00cc44','#0088ff'];
+    drawGraph('graph-force', 'Force (N)', sessionData.frames.force, currentFrame, xyzColors, 'force', forceStartFrame, '#e94560');
+    drawGraph('graph-av', 'Ang.Vel (rad/s)', sessionData.frames.angular_velocity, currentFrame, xyzColors, 'av', avForceAlignOffset, '#ffaa00');
+    drawGraph('graph-vel', 'Velocity (m/s)', sessionData.frames.velocity, currentFrame, xyzColors, 'vel', -1, '#888');
+}
+
+function drawGraph(canvasId, title, data, currentFrame, colors, type, startFrame, titleColor) {
+    if (startFrame === undefined) startFrame = -1;
+    const canvas = document.getElementById(canvasId);
+    const ctx = canvas.getContext('2d');
+    const W = canvas.parentElement.clientWidth / 3;
+    const H = canvas.parentElement.clientHeight;
+    canvas.width = W; canvas.height = H;
+
+    ctx.fillStyle = '#16213e';
+    ctx.fillRect(0, 0, W, H);
+
+    if (!data || data.length === 0) return;
+
+    const pad = {t:22, b:16, l:40, r:8};
+    const gw = W - pad.l - pad.r, gh = H - pad.t - pad.b;
+
+    // Find range (only from startFrame onward if specified)
+    const rangeStart = (startFrame >= 0) ? startFrame : 0;
+    let mn = Infinity, mx = -Infinity;
+    for (let i = rangeStart; i < data.length; i++) {
+        for (let c = 0; c < 3; c++) {
+            const v = data[i][c];
+            if (v < mn) mn = v;
+            if (v > mx) mx = v;
+        }
+    }
+    if (mn === mx) { mn -= 1; mx += 1; }
+    const margin = (mx - mn) * 0.05;
+    mn -= margin; mx += margin;
+
+    // Title
+    ctx.fillStyle = titleColor || '#888';
+    ctx.font = '11px sans-serif';
+    ctx.fillText(title, pad.l, 14);
+
+    // Axes
+    ctx.strokeStyle = '#444';
+    ctx.beginPath();
+    ctx.moveTo(pad.l, pad.t); ctx.lineTo(pad.l, pad.t + gh); ctx.lineTo(pad.l + gw, pad.t + gh);
+    ctx.stroke();
+
+    // Zero line
+    if (mn < 0 && mx > 0) {
+        const zy = pad.t + gh - (0 - mn) / (mx - mn) * gh;
+        ctx.strokeStyle = '#555';
+        ctx.setLineDash([3,3]);
+        ctx.beginPath(); ctx.moveTo(pad.l, zy); ctx.lineTo(pad.l + gw, zy); ctx.stroke();
+        ctx.setLineDash([]);
+    }
+
+    // Plot (start from startFrame if specified)
+    const drawStart = (startFrame >= 0) ? startFrame : 0;
+    const labels = ['X','Y','Z'];
+    for (let c = 0; c < 3; c++) {
+        ctx.strokeStyle = colors[c];
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        let started = false;
+        for (let i = drawStart; i < data.length; i++) {
+            const x = pad.l + (i / (data.length - 1)) * gw;
+            const y = pad.t + gh - (data[i][c] - mn) / (mx - mn) * gh;
+            !started ? (ctx.moveTo(x, y), started = true) : ctx.lineTo(x, y);
+        }
+        ctx.stroke();
+    }
+
+    // Release frame vertical dashed line (yellow, matches 3D ring marker)
+    if (releaseLocalFrame >= 0 && releaseLocalFrame < data.length) {
+        const rx = pad.l + (releaseLocalFrame / (data.length - 1)) * gw;
+        ctx.strokeStyle = '#ffff00';
+        ctx.lineWidth = 1;
+        ctx.setLineDash([4, 3]);
+        ctx.beginPath(); ctx.moveTo(rx, pad.t); ctx.lineTo(rx, pad.t + gh); ctx.stroke();
+        ctx.setLineDash([]);
+    }
+
+    // Spin start vertical dashed lines
+    ctx.lineWidth = 1;
+    ctx.setLineDash([4, 3]);
+    if (dynamicSpinStart >= 0 && dynamicSpinStart < data.length) {
+        const dx = pad.l + (dynamicSpinStart / (data.length - 1)) * gw;
+        ctx.strokeStyle = '#00cc88';  // FORCE_COLOR_DYNAMIC
+        ctx.beginPath(); ctx.moveTo(dx, pad.t); ctx.lineTo(dx, pad.t + gh); ctx.stroke();
+    }
+    if (kinematicSpinStart >= 0 && kinematicSpinStart < data.length) {
+        const kx = pad.l + (kinematicSpinStart / (data.length - 1)) * gw;
+        ctx.strokeStyle = '#4488ff';  // FORCE_COLOR_KINEMATIC
+        ctx.beginPath(); ctx.moveTo(kx, pad.t); ctx.lineTo(kx, pad.t + gh); ctx.stroke();
+    }
+    ctx.setLineDash([]);
+
+    // Current frame cursor
+    if (currentFrame < data.length) {
+        const cx = pad.l + (currentFrame / (data.length - 1)) * gw;
+        ctx.strokeStyle = '#fff';
+        ctx.lineWidth = 1;
+        ctx.beginPath(); ctx.moveTo(cx, pad.t); ctx.lineTo(cx, pad.t + gh); ctx.stroke();
+    }
+
+    // Legend
+    for (let c = 0; c < 3; c++) {
+        ctx.fillStyle = colors[c];
+        ctx.fillText(labels[c], W - 50 + c * 18, 14);
+    }
+
+    // Current values (av and vel only, after data stabilizes)
+    if (type === 'av' || type === 'vel') {
+        let norm = null;
+        // Mocap data
+        if (currentFrame >= drawStart && currentFrame < data.length) {
+            const v = data[currentFrame];
+            norm = Math.sqrt(v[0]*v[0] + v[1]*v[1] + v[2]*v[2]);
+        }
+        // Sim mode: velocity from simTrajectory
+        if (type === 'vel' && activeMode === 'sim' && simTrajectory && simFrame >= 0 && simFrame < simTrajectory.length) {
+            const p = simTrajectory[simFrame];
+            if (p.vx != null) {
+                norm = Math.sqrt(p.vx*p.vx + p.vy*p.vy + p.vz*p.vz);
+            }
+        }
+        if (norm !== null) {
+            const clr = titleColor || '#fff';
+            let num1, unit1, num2, unit2;
+            if (type === 'av') {
+                const rpm = norm * 60 / (2 * Math.PI);
+                num1 = rpm.toFixed(0); unit1 = ' rpm';
+                num2 = norm.toFixed(1); unit2 = ' rad/s';
+            } else {
+                const kmh = norm * 3.6;
+                num1 = kmh.toFixed(1); unit1 = ' km/h';
+                num2 = norm.toFixed(2); unit2 = ' m/s';
+            }
+            ctx.fillStyle = clr;
+            ctx.font = 'bold 28px sans-serif';
+            const w1 = ctx.measureText(num1).width;
+            ctx.fillText(num1, pad.l, pad.t + 28);
+            ctx.font = '11px sans-serif';
+            ctx.fillText(unit1, pad.l + w1, pad.t + 28);
+            ctx.font = 'bold 28px sans-serif';
+            const w2 = ctx.measureText(num2).width;
+            ctx.fillText(num2, pad.l, pad.t + 56);
+            ctx.font = '11px sans-serif';
+            ctx.fillText(unit2, pad.l + w2, pad.t + 56);
+        }
+    }
+}
+
+// ===================================================================
+// Animation Loop (timestamp-based for smooth playback)
+// ===================================================================
+let lastAnimTime = 0;
+let _contextLost = false;
+
+function animate(timestamp) {
+    if (_contextLost) return;  // stop loop entirely while context is lost
+    requestAnimationFrame(animate);
+
+    // Compute elapsed ms since last frame
+    if (!timestamp || !lastAnimTime) { lastAnimTime = timestamp || 0; }
+    const dtMs = Math.min(timestamp - lastAnimTime, 50);  // cap at 50ms to avoid jumps
+    lastAnimTime = timestamp;
+
+    // Steps to advance = elapsed_ms * speed_factor (1ms per step at x1)
+    const speedFactor = SPEED_MODES[speedIndex].factor;
+
+    // Unified playback: mocap then seamlessly into sim
+    if (playing && sessionData) {
+        stepsAccum += dtMs * speedFactor;
+        const advance = Math.floor(stepsAccum);
+        stepsAccum -= advance;
+        if (advance > 0) {
+            if (activeMode === 'mocap') {
+                animFrame += advance;
+                if (animFrame >= releaseLocalFrame) {
+                    // Reached release: seamlessly switch to sim mode
+                    animFrame = releaseLocalFrame;
+                    if (simTrajectory) {
+                        switchToSimMode();
+                        simFrame = SIM_SKIP;
+                        updateSimDisplay(simFrame);
+                    } else {
+                        playing = false;
+                        document.getElementById('btn-play').textContent = 'Play';
+                    }
+                }
+                updateDisplay(animFrame);
+            } else if (simTrajectory) {
+                simFrame += advance;
+                if (simFrame >= simTrajectory.length) {
+                    simFrame = simTrajectory.length - 1;
+                    playing = false;
+                    document.getElementById('btn-play').textContent = 'Play';
+                }
+                updateSimDisplay(simFrame);
+            }
+            document.getElementById('time-slider').value = modeToUnified(activeMode, activeMode === 'sim' ? simFrame : animFrame);
+            updateTimeLabel();
+        }
+    }
+
+    // Ball zoom: camera follows ball every frame
+    if (viewMode === 'ball') {
+        updateCamera();
+    }
+
+    // Ring markers always face camera
+    if (releaseMarker) releaseMarker.lookAt(camera.position);
+    if (dynamicSpinMarker) dynamicSpinMarker.lookAt(camera.position);
+    if (kinematicSpinMarker) kinematicSpinMarker.lookAt(camera.position);
+
+    // Only render if WebGL context is not lost
+    if (!renderer.getContext().isContextLost()) {
+        renderer.render(scene, camera);
+    }
+}
+
+// Step frame helpers (kept for internal use)
+function stepMocap(delta) {
+    if (!sessionData) return;
+    const maxF = sessionData.frames.ball_center.length - 1;
+    animFrame = Math.max(0, Math.min(maxF, animFrame + delta));
+    updateDisplay(animFrame);
+}
+
+function stepSim(delta) {
+    if (!simTrajectory) return;
+    simFrame = Math.max(0, Math.min(simTrajectory.length - 1, simFrame + delta));
+    updateSimDisplay(simFrame);
+}
+
+// ===================================================================
+// Controls
+// ===================================================================
+function initControls() {
+    // --- Play/Pause ---
+    document.getElementById('btn-play').addEventListener('click', () => {
+        playing = !playing;
+        stepsAccum = 0; lastAnimTime = 0;
+        if (playing) {
+            // Restart from beginning
+            switchToMocapMode();
+            animFrame = 0;
+            setUnifiedFrame(0);
+        }
+        document.getElementById('btn-play').textContent = playing ? 'Pause' : 'Play';
+    });
+
+    // --- Step buttons ---
+    document.getElementById('btn-step-back').addEventListener('click', () => {
+        const cur = parseInt(document.getElementById('time-slider').value);
+        setUnifiedFrame(Math.max(0, cur - 1));
+    });
+    document.getElementById('btn-step-fwd').addEventListener('click', () => {
+        const cur = parseInt(document.getElementById('time-slider').value);
+        setUnifiedFrame(Math.min(totalSliderMax, cur + 1));
+    });
+    document.getElementById('btn-reset').addEventListener('click', () => {
+        playing = false;
+        document.getElementById('btn-play').textContent = 'Play';
+        switchToMocapMode();
+        setUnifiedFrame(0);
+    });
+
+    // --- Unified slider ---
+    document.getElementById('time-slider').addEventListener('input', e => {
+        playing = false;
+        document.getElementById('btn-play').textContent = 'Play';
+        setUnifiedFrame(parseInt(e.target.value));
+    });
+
+    // --- Speed toggle ---
+    document.getElementById('btn-speed').addEventListener('click', () => {
+        speedIndex = (speedIndex + 1) % SPEED_MODES.length;
+        stepsAccum = 0;
+        document.getElementById('btn-speed').textContent = SPEED_MODES[speedIndex].label;
+    });
+
+    // --- Keyboard ---
+    document.addEventListener('keydown', e => {
+        if (e.target.tagName === 'INPUT' || e.target.tagName === 'SELECT') return;
+        const cur = parseInt(document.getElementById('time-slider').value);
+        switch (e.key) {
+            case 'ArrowLeft':
+                e.preventDefault();
+                setUnifiedFrame(Math.max(0, cur - 1));
+                break;
+            case 'ArrowRight':
+                e.preventDefault();
+                setUnifiedFrame(Math.min(totalSliderMax, cur + 1));
+                break;
+            case 'ArrowUp':
+                e.preventDefault();
+                setUnifiedFrame(Math.max(0, cur - 10));
+                break;
+            case 'ArrowDown':
+                e.preventDefault();
+                setUnifiedFrame(Math.min(totalSliderMax, cur + 10));
+                break;
+            case ' ':
+                e.preventDefault();
+                playing = !playing;
+                stepsAccum = 0; lastAnimTime = 0;
+                document.getElementById('btn-play').textContent = playing ? 'Pause' : 'Play';
+                break;
+        }
+    });
+
+    document.getElementById('session-select').addEventListener('change', e => {
+        if (e.target.value) loadSession(e.target.value);
+    });
+
+    // Checkbox toggles - just update display
+    ['chk-trajectory','chk-force','chk-moment','chk-angular-vel','chk-poa','chk-sim','chk-nospin','chk-magnus','chk-axes',
+     'scale-force','scale-moment','scale-av'].forEach(id => {
+        document.getElementById(id).addEventListener('input', () => {
+            updateDisplay(animFrame);
+            if (activeMode === 'sim') updateSimDisplay(simFrame);
+        });
+    });
+
+    // Ball opacity slider
+    document.getElementById('ball-opacity').addEventListener('input', e => {
+        const op = parseFloat(e.target.value);
+        if (ballMesh) ballMesh.material.opacity = op;
+    });
+
+    // View mode buttons
+    document.getElementById('btn-view-field').addEventListener('click', () => setViewMode('field'));
+    document.getElementById('btn-view-ball').addEventListener('click', () => setViewMode('ball'));
+    document.getElementById('ball-zoom-dist').addEventListener('input', e => {
+        ballDist = parseFloat(e.target.value);
+        updateCamera();
+    });
+
+    // Camera preset buttons (Field mode orbit parameters)
+    // Three.js: X=mocap X (pitcher→catcher), Y=mocap Z (up), Z=-mocap Y
+    // theta=3π/2 → camera at -X (behind pitcher), phi=π/2 → horizontal
+    document.getElementById('btn-cam-top').addEventListener('click', () => {
+        if (viewMode === 'ball') {
+            ballTheta = Math.PI * 1.5; ballPhi = 0.01;
+        } else {
+            fieldTheta = Math.PI * 1.5; fieldPhi = 0.01; fieldDist = 15;
+            fieldTarget.set(MOUND_TO_HOME / 2, 0, 0);
+        }
+        updateCamera();
+    });
+    document.getElementById('btn-cam-side').addEventListener('click', () => {
+        if (viewMode === 'ball') {
+            ballTheta = 0; ballPhi = Math.PI / 2;
+        } else {
+            fieldTheta = 0; fieldPhi = Math.PI / 2; fieldDist = 8;
+            fieldTarget.set(MOUND_TO_HOME / 2, 1.0, 0);
+        }
+        updateCamera();
+    });
+    document.getElementById('btn-cam-rear').addEventListener('click', () => {
+        if (viewMode === 'ball') {
+            ballTheta = Math.PI * 1.5; ballPhi = Math.PI / 2;
+        } else {
+            fieldTheta = Math.PI * 1.5; fieldPhi = Math.PI / 2; fieldDist = 8;
+            fieldTarget.set(MOUND_TO_HOME / 2, 1.0, 0);
+        }
+        updateCamera();
+    });
+}
+
+// ===================================================================
+// Graph toggle
+// ===================================================================
+function initGraphToggle() {
+    const toggle = document.getElementById('graph-toggle');
+    const graphs = document.getElementById('graphs');
+    const arrow = toggle.querySelector('.arrow');
+    toggle.addEventListener('click', () => {
+        const isCollapsed = graphs.classList.toggle('collapsed');
+        arrow.textContent = isCollapsed ? '\u25B6' : '\u25BC';
+        // Force layout recalc then resize canvas
+        requestAnimationFrame(() => {
+            resizeCanvas();
+            if (!isCollapsed && sessionData) drawGraphs(animFrame);
+        });
+    });
+}
+
+// ===================================================================
+// Init
+// ===================================================================
+async function init() {
+    try {
+        initScene();
+        initMouseControls();
+        updateCamera();
+        initControls();
+        initGraphToggle();
+        animate();
+
+        await loadSessionList();
+
+        // Auto-load from URL parameter
+        const params = new URLSearchParams(window.location.search);
+        const sid = params.get('mocap') || params.get('id');
+        if (sid) {
+            document.getElementById('session-select').value = sid;
+            await loadSession(sid);
+        } else {
+            document.getElementById('loading').classList.add('hidden');
+        }
+    } catch(e) {
+        console.error('Init error:', e);
+        document.getElementById('loading').textContent = 'Error: ' + e.message;
+    }
+}
+
+init();
+</script>
+</body>
+</html>
