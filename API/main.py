@@ -573,6 +573,7 @@ class HawkEyeSessionRequest(BaseModel):
     vel_time: Optional[List[float]] = None         # time axis for velocity chart
     vel_head: Optional[List[float]] = None         # head speed (km/h)
     vel_grip: Optional[List[float]] = None         # grip speed (km/h)
+    swing_start_time: Optional[float] = None      # swing start (grip axial zero-cross)
     # Pitcher / Batter skeleton
     pitcher_skel: Optional[dict] = None            # {time, joints, bones}
     batter_skel: Optional[dict] = None             # {time, joints, bones}
@@ -642,6 +643,7 @@ def hawkeye_create_session(req: HawkEyeSessionRequest):
         "vel_time": req.vel_time,
         "vel_head": req.vel_head,
         "vel_grip": req.vel_grip,
+        "swing_start_time": req.swing_start_time,
         "pitcher_skel": req.pitcher_skel,
         "batter_skel": req.batter_skel,
         "hit_ball_time": req.hit_ball_time,

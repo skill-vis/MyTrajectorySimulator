@@ -1388,6 +1388,8 @@ let he2MeasuredBall = null, he2MeasuredSpline = null, he2MeasuredHitSpline = nul
 let he2MeasuredTimes = null, he2MeasuredSplines = null;
 let he2IsaData = null, he2IsaArrow = null, he2IsaTrailDots = [];
 let he2PitcherSkel = null, he2BatterSkel = null;
+let he2GripMaxTime = null, he2ImpactTime = null, he2SwingStartTime = null;
+let he2VelChart = null;
 let he2Label = '';
 const HE2_COLOR = 0xff8844;  // orange for 2nd session (1st is green 0x44ff88)
 const HE2_BAT_COLOR = 0xff6633;
@@ -1891,6 +1893,7 @@ let batterSkelData = null;   // {time:[], joints:{...}, bones:[[a,b],...]}
 let batterBoneLines = [];    // THREE.Line[] for batter skeleton
 let hawkeyeGripMaxTime = null; // NR start time (grip speed max, HawkEye time)
 let hawkeyeImpactTime = null;  // impact time (HawkEye time)
+let hawkeyeSwingStartTime = null; // swing start (grip axial zero-cross)
 let hawkeyeVelChart = null;    // {time:[], head:[], grip:[]}
 let isaArrow = null;         // THREE.ArrowHelper for ISA
 let isaTrailDots = [];       // THREE.Mesh[] for ISA trail
@@ -3942,8 +3945,15 @@ function drawBatVelChart(currentSimTime) {
     ctx.fillRect(0, 0, W, H);
 
     const vc = hawkeyeVelChart;
-    const t0 = vc.time[0], t1 = vc.time[vc.time.length - 1];
-    const vMax = Math.max(...vc.head, ...vc.grip) * 1.1;
+    let t0 = vc.time[0], t1 = vc.time[vc.time.length - 1];
+    let vMax = Math.max(...vc.head, ...vc.grip);
+    // Expand range if 2nd session exists
+    if (he2VelChart) {
+        t0 = Math.min(t0, he2VelChart.time[0]);
+        t1 = Math.max(t1, he2VelChart.time[he2VelChart.time.length - 1]);
+        vMax = Math.max(vMax, ...he2VelChart.head, ...he2VelChart.grip);
+    }
+    vMax *= 1.1;
 
     // Time offset for sim time
     const offset = hawkeyeBatData ? hawkeyeBatData._timeOffset || 0 : 0;
@@ -3975,6 +3985,16 @@ function drawBatVelChart(currentSimTime) {
     }
     ctx.stroke();
 
+    // Vertical line: swing start (green dashed)
+    if (hawkeyeSwingStartTime != null) {
+        ctx.strokeStyle = '#44cc44'; ctx.lineWidth = 1; ctx.setLineDash([4, 3]);
+        const x = tx(hawkeyeSwingStartTime);
+        ctx.beginPath(); ctx.moveTo(x, pad.t); ctx.lineTo(x, pad.t + ch); ctx.stroke();
+        ctx.setLineDash([]);
+        ctx.fillStyle = '#44cc44'; ctx.font = '9px sans-serif'; ctx.textAlign = 'center';
+        ctx.fillText('Swing', x, pad.t + ch + 12);
+    }
+
     // Vertical line: grip max (orange dashed)
     if (hawkeyeGripMaxTime != null) {
         ctx.strokeStyle = '#ff8844'; ctx.lineWidth = 1; ctx.setLineDash([4, 3]);
@@ -3993,6 +4013,59 @@ function drawBatVelChart(currentSimTime) {
         ctx.setLineDash([]);
         ctx.fillStyle = '#4488ff'; ctx.font = '9px sans-serif'; ctx.textAlign = 'center';
         ctx.fillText('Impact', x, pad.t + ch + 12);
+    }
+
+    // Vertical line: release (white dashed)
+    {
+        const releaseHe = offset;  // sim t=0 maps to this HawkEye time
+        if (releaseHe >= t0 && releaseHe <= t1) {
+            ctx.strokeStyle = '#fff'; ctx.lineWidth = 1; ctx.setLineDash([4, 3]);
+            const x = tx(releaseHe);
+            ctx.beginPath(); ctx.moveTo(x, pad.t); ctx.lineTo(x, pad.t + ch); ctx.stroke();
+            ctx.setLineDash([]);
+            ctx.fillStyle = '#fff'; ctx.font = '9px sans-serif'; ctx.textAlign = 'center';
+            ctx.fillText('Release', x, pad.t + ch + 12);
+        }
+    }
+
+    // --- 2nd session overlay (dimmer, same structure) ---
+    if (he2VelChart) {
+        const vc2 = he2VelChart;
+        // Head speed (dim orange)
+        ctx.strokeStyle = 'rgba(255,136,68,0.4)'; ctx.lineWidth = 1.5; ctx.beginPath();
+        for (let i = 0; i < vc2.time.length; i++) {
+            const x = tx(vc2.time[i]), y = ty(vc2.head[i]);
+            i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
+        }
+        ctx.stroke();
+        // Grip speed (dim cyan)
+        ctx.strokeStyle = 'rgba(68,221,255,0.4)'; ctx.lineWidth = 1.5; ctx.beginPath();
+        for (let i = 0; i < vc2.time.length; i++) {
+            const x = tx(vc2.time[i]), y = ty(vc2.grip[i]);
+            i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
+        }
+        ctx.stroke();
+        // Swing start (dim green)
+        if (he2SwingStartTime != null) {
+            ctx.strokeStyle = 'rgba(68,204,68,0.4)'; ctx.lineWidth = 1; ctx.setLineDash([4, 3]);
+            const x = tx(he2SwingStartTime);
+            ctx.beginPath(); ctx.moveTo(x, pad.t); ctx.lineTo(x, pad.t + ch); ctx.stroke();
+            ctx.setLineDash([]);
+        }
+        // NR (dim orange)
+        if (he2GripMaxTime != null) {
+            ctx.strokeStyle = 'rgba(255,136,68,0.4)'; ctx.lineWidth = 1; ctx.setLineDash([4, 3]);
+            const x = tx(he2GripMaxTime);
+            ctx.beginPath(); ctx.moveTo(x, pad.t); ctx.lineTo(x, pad.t + ch); ctx.stroke();
+            ctx.setLineDash([]);
+        }
+        // Impact (dim blue)
+        if (he2ImpactTime != null) {
+            ctx.strokeStyle = 'rgba(68,136,255,0.4)'; ctx.lineWidth = 1; ctx.setLineDash([4, 3]);
+            const x = tx(he2ImpactTime);
+            ctx.beginPath(); ctx.moveTo(x, pad.t); ctx.lineTo(x, pad.t + ch); ctx.stroke();
+            ctx.setLineDash([]);
+        }
     }
 
     // Current time cursor (white)
@@ -5310,6 +5383,7 @@ logEvent('page_view');
             // Grip max time (NR start) and velocity chart data
             if (data.grip_max_time != null) hawkeyeGripMaxTime = data.grip_max_time;
             if (data.impact_time != null) hawkeyeImpactTime = data.impact_time;
+            if (data.swing_start_time != null) hawkeyeSwingStartTime = data.swing_start_time;
             if (data.vel_time && data.vel_head && data.vel_grip) {
                 hawkeyeVelChart = { time: data.vel_time, head: data.vel_head, grip: data.vel_grip };
                 // chartHidden remains true — user can open via button
@@ -5408,6 +5482,28 @@ logEvent('page_view');
             if (hawkeyeHitBallData) drawHawkeyeHitBallPath();
             if (hawkeyeReleaseData) drawHawkeyeReleaseDot();
             if (hawkeyeBallData || hawkeyeHitBallData) initMeasuredBall();
+            // Ball markers at Swing Start and NR times
+            if (hawkeyeMeasuredSplines && hawkeyeMeasuredSplines.length > 0) {
+                const pitchSeg = hawkeyeMeasuredSplines[0];
+                const markerTimes = [
+                    { time: hawkeyeSwingStartTime, color: 0x44cc44, label: 'swing' },
+                    { time: hawkeyeGripMaxTime, color: 0xff8844, label: 'NR' },
+                ];
+                for (const m of markerTimes) {
+                    if (m.time == null) continue;
+                    const heTime = m.time;
+                    if (heTime < pitchSeg.tStart || heTime > pitchSeg.tEnd) continue;
+                    const u = _timeToSplineParam(pitchSeg, heTime);
+                    const pos = pitchSeg.spline.getPoint(u);
+                    const marker = new THREE.Mesh(
+                        new THREE.SphereGeometry(0.025, 12, 12),
+                        new THREE.MeshBasicMaterial({ color: m.color, transparent: true, opacity: 0.8 })
+                    );
+                    marker.position.copy(pos);
+                    scene.add(marker);
+                    sceneObjects.push(marker);
+                }
+            }
             if (hawkeyeIsaData) initIsa();
             if (pitcherSkelData) initPitcherSkeleton();
             if (batterSkelData) initBatterSkeleton();
@@ -5441,12 +5537,39 @@ logEvent('page_view');
                     }
                     if (d2.pitcher_skel) he2PitcherSkel = d2.pitcher_skel;
                     if (d2.batter_skel) he2BatterSkel = d2.batter_skel;
+                    if (d2.grip_max_time != null) he2GripMaxTime = d2.grip_max_time;
+                    if (d2.impact_time != null) he2ImpactTime = d2.impact_time;
+                    if (d2.swing_start_time != null) he2SwingStartTime = d2.swing_start_time;
+                    if (d2.vel_time && d2.vel_head && d2.vel_grip) {
+                        he2VelChart = { time: d2.vel_time, head: d2.vel_head, grip: d2.vel_grip };
+                    }
 
                     // Draw 2nd session elements
                     _he2DrawBallPath();
                     _he2DrawHitBallPath();
                     _he2InitBat();
                     _he2InitMeasuredBall();
+                    // Ball markers at Swing Start and NR for 2nd session
+                    if (he2MeasuredSplines && he2MeasuredSplines.length > 0) {
+                        const seg2 = he2MeasuredSplines[0];
+                        const markers2 = [
+                            { time: he2SwingStartTime, color: 0x44cc44 },
+                            { time: he2GripMaxTime, color: 0xff8844 },
+                        ];
+                        for (const m of markers2) {
+                            if (m.time == null) continue;
+                            if (m.time < seg2.tStart || m.time > seg2.tEnd) continue;
+                            const u = _timeToSplineParam(seg2, m.time);
+                            const pos = seg2.spline.getPoint(u);
+                            const mk = new THREE.Mesh(
+                                new THREE.SphereGeometry(0.025, 12, 12),
+                                new THREE.MeshBasicMaterial({ color: m.color, transparent: true, opacity: 0.8 })
+                            );
+                            mk.position.copy(pos);
+                            scene.add(mk);
+                            sceneObjects.push(mk);
+                        }
+                    }
                     if (he2ReleaseData) _he2DrawReleaseDot();
                     if (he2PitcherSkel) _he2InitSkeleton(he2PitcherSkel, 0xff8844);
                     if (he2BatterSkel) _he2InitSkeleton(he2BatterSkel, 0xff6633);
