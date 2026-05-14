@@ -432,8 +432,8 @@ $$\color{#ffcc44}{\mathbf{F}_g = m\mathbf{g}}$$
 <summary>📐 研究者向け: 抗力項</summary>
 <div>
 <p>運動方程式の第2項:</p>
-$$\color{#aaaaaa}{\mathbf{F}_D = -\frac{1}{2}C_D \rho A {\color{#44ff44}v} {\color{#44ff44}\mathbf{v}}}$$
-<p>$C_D$ は抗力係数、$\rho$ は空気密度（約 1.2 kg/m³）、$A$ はボールの断面積（$\pi r^2$, $r$ ≈ 0.037 m）、$\color{#44ff44}v$ は速度の大きさ、$\color{#44ff44}\mathbf{v}$ は速度ベクトル。力は常に進行方向と逆向きで、速度の2乗に比例する。</p>
+$$\color{#aaaaaa}{\mathbf{F}_D = -\frac{1}{2}\rho A C_D {\color{#44ff44}v}^2 {\color{#44ff44}\hat{\mathbf{v}}}}$$
+<p>$C_D$ は抗力係数、$\rho$ は空気密度（約 1.2 kg/m³）、$A$ はボールの断面積（$\pi r^2$, $r$ ≈ 0.037 m）、$\color{#44ff44}v$ は速度の大きさ（スカラ）、$\color{#44ff44}\hat{\mathbf{v}}$ は進行方向の単位ベクトル。力は常に進行方向と逆向きで、速度の2乗に比例する。</p>
 <p>本シミュレータでは Nathan モデルの抗力係数を用いる:</p>
 $$C_D = c_{d0} + c_{d,\text{spin}} \cdot \frac{\color{#ff8a65}{\omega_{\text{total}}}}{1000}$$
 <p>($c_{d0} = 0.297$, $c_{d,\text{spin}} = 0.0292$). スピンが増えると抗力係数も増加する（縫い目による乱流促進効果）。</p>
